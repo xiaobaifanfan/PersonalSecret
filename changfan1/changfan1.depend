@@ -1,0 +1,18 @@
+# depslib dependency file v1.0
+1522323274 source:c:\users\changfan\desktop\changfan1\procedure.c
+	<stdio.h>
+	"wordanalys.h"
+	<stdbool.h>
+	<string.h>
+
+1521875641 source:c:\users\changfan\desktop\changfan1\text.c
+
+1522327139 source:c:\users\changfan\desktop\changfan1\wordanalys.c
+	<stdio.h>
+	<stdbool.h>
+	<string.h>
+	"wordanalys.h"
+
+1522326423 c:\users\changfan\desktop\changfan1\wordanalys.h
+	<stdbool.h>
+
