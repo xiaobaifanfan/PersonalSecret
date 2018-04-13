@@ -35,13 +35,16 @@ public class getTable {
 
 		 
 		 HashSet<String> empty_set=new HashSet<String>();
+		 HashSet<String> empty_set1=new HashSet<String>();//follow.get("Program").add("#");为了怕覆盖
 		 HashSet<String> empty_set_int=new HashSet<String>();
 		 for(int i=0;i<V.length;i++) {
 			 first.put(String.valueOf(i), empty_set);
 			 follow.put(String.valueOf(i), empty_set);
 			 index.put(String.valueOf(i), empty_set_int);
 		 }
-		//follow.get("Program").add("#");
+		 
+		empty_set1.add("#");
+		follow.put("Program", empty_set1);
 		return;
 	}
 	
@@ -87,23 +90,38 @@ public class getTable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		for(int i=0;i<G.size();i++) {
+//		for(int i=0;i<G.size();i++) {
+//
+//			System.out.println(G.get(i).getLeft()+G.get(i).getRight());
+//			
+//		}
+//		System.out.println(G.size());
+//		for(int i=0;i<G.size();i++) {
+//			HashSet storetemp=new HashSet();
+//			System.out.println(storetemp.size());
+//			storetemp.add(i);
+//			index.put(G.get(i).getLeft(), storetemp);
+//		} 
 
-			System.out.println(G.get(i).getLeft()+G.get(i).getRight());
-			
-		}
-		for(int i=0;i<G.size();i++) {
-			HashSet storetemp=new HashSet();
-			storetemp.add(i);
-			index.put(G.get(i).getLeft(), storetemp);
-		} 
-
-	Object[] b=index.keySet().toArray();
-
-		for(int i=0;i<b.length;i++) {
-			System.out.println(b[i]);		
-		}		
+	String str1="";
+	int i=0;
+	for( i=0;i<34;i++) {
+	 
+	HashSet set=new HashSet();
+	set.add(str1);
+	str1=str1+"d";
+	set.add(str1);
+	String str="dd"+i;
+	index.put(str, set);
 	}
+	
+	index.get("dd19").add("good evening");
+	System.out.println(index.size());
+	System.out.println(index.values());
+	System.out.println(index.keySet());
+	System.out.println(index.get("dd19").contains("good evening"));
+	
+}
 //	public void get_first() {
 //		boolean change=true;
 //		boolean is_empty;//表示产生式右端为空串
