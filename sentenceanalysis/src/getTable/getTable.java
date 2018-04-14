@@ -192,7 +192,10 @@ public class getTable {
 		}
 		
 	}
-	public static  void  main(String[] args) 
+	public void get_follow() {
+		
+	}
+public static  void  main(String[] args) 
 	{
 	
 	getTable gettable=new getTable();
