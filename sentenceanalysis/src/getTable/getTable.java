@@ -22,7 +22,7 @@ public class getTable {
 				"ForAssignment","Assignment","Bool", "Rel", "LExpr",
 				"HExpr","Factor","Self_op","HLogic_op","LLogic_op",
 				"HMath_op","LMath_op","Judge_op","Bool_value","Array",
-				"Fora","Forb","Forc","HRel","LArray","M","N","F","T","E"
+				"Fora","Forb","Forc","HRel","LArray","M","N","F","T","E","H","M"
 			};
 		 String[] T= {
 				"(" ,")",";","{","}","[","]","a",
@@ -164,13 +164,40 @@ public class getTable {
 			
 		}
 	 first.remove("S");
-		
+		System.out.println("first集如下：");
 		System.out.println(first.keySet());
 		System.out.println(first.values());
-		System.out.println(first.get("E"));
-		System.out.println(first.get("F"));
-		System.out.println(first.get("T"));
+		System.out.println("first(E)="+first.get("E"));
+		System.out.println("first(F)="+first.get("F"));
+		System.out.println("first(T)="+first.get("T"));
+		System.out.println("first(M)="+first.get("M"));
+		System.out.println("first(H)="+first.get("H"));
+		
 	}
+	public HashSet  judge_first(Vector s,HashSet set) {
+		int count=0;
+		for(int i=0;i<s.size();i++)
+		{
+			String str=s.get(i).toString();
+			if(!inTV(str)) {
+				set.add(str);
+				break;
+			}
+			if(!first.get(str).contains("ε")) {
+				set.addAll(first.get(str));
+				break;
+			}
+			set.addAll(first.get(str));
+			set.remove("ε");
+			count++;
+		}
+		
+		if(count==s.size())
+			set.add("ε");
+		return set;
+	}
+	
+	
 	public void test() {
 		HashSet set=new HashSet();
 		Grammer gg=new Grammer();
@@ -193,6 +220,96 @@ public class getTable {
 		
 	}
 	public void get_follow() {
+		boolean change=true;
+		while(change) {
+			change=false;
+			String search_next=null;
+			for(Grammer g:G) 
+			{
+				int len=g.getRight().size();
+				
+				if(len==1) {
+					if(follow.get(g.getLeft())==null) {
+						HashSet set=new HashSet();
+						set.add("#");
+						follow.put(g.getLeft(), set);
+					}
+					String sigalTV=g.getRight().get(0).toString();
+					if(inTV(sigalTV)) {
+						HashSet set=new HashSet();
+						set.add("#");
+						follow.put(sigalTV, set);
+						follow.get(sigalTV).addAll(follow.get(g.getLeft()));
+					}else {
+						continue;
+					}
+					
+					
+				}
+				
+				for(int i=0;i<len;i++) 
+				{
+					String str=g.getRight().get(i).toString();
+					if(!inTV(str)) 
+					{
+						System.out.println("--------产生式"+g.getRight()+" "+i+str);
+						continue;	
+					}
+					
+					if(follow.get(str)==null) {
+						HashSet set=new HashSet();
+						set.add("#");
+						follow.put(str, set);
+					}
+					System.out.println("procedure------262");
+					if(i<len-1) {
+						search_next=g.getRight().get(i+1).toString();
+						Vector tmp=new Vector();
+						HashSet stmp=new HashSet();
+						if(i+1<len) {
+						for(int k=i+1;k<len;k++) {
+							tmp.add(g.getRight().get(k).toString());
+						}
+						HashSet tempset=judge_first(tmp,stmp);
+						follow.get(str).addAll(tempset);
+						System.out.println("procedure------273");
+						if(tempset.contains("ε")) {
+							System.out.println("procedure------273"+follow.get(str));
+							follow.get(str).remove("ε");
+							System.out.println("procedure------273"+follow.get(str));
+							if(follow.get(g.getLeft())==null) {
+								HashSet set=new HashSet();
+								set.add("#");
+								follow.put(g.getLeft(), set);
+							}
+							follow.get(str).addAll(follow.get(g.getLeft()));
+							System.out.println("procedure------279"+follow.get(str));
+						}
+						System.out.println("procedure------278");
+						}
+//						if(len<follow.get(str).size())
+//							change=true;
+
+				}else {
+					follow.get(str).addAll(follow.get(g.getLeft()));
+					System.out.println("procedure------285");
+//					if(len<follow.get(str).size())
+//						change=true;
+				
+			}
+					System.out.println(follow.get(g.getLeft()));
+		}
+		}
+		}
+		follow.remove("S");
+		System.out.println("follow集如下：");
+		System.out.println(follow.keySet());
+		System.out.println(follow.values());
+		System.out.println("follow(E)="+follow.get("E"));
+		System.out.println("follow(T)="+follow.get("T"));
+		System.out.println("follow(F)="+follow.get("F"));
+		System.out.println("follow(M)="+follow.get("M"));
+		System.out.println("follow(H)="+follow.get("H"));
 		
 	}
 public static  void  main(String[] args) 
@@ -202,6 +319,7 @@ public static  void  main(String[] args)
 	try {
 		gettable.get_grammer();
 		gettable.get_first();
+		gettable.get_follow();
 	} catch (IOException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
