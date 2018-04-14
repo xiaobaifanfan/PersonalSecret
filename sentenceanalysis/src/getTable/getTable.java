@@ -4,8 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Vector;
 import mode.Grammer;
 public class getTable {
@@ -19,13 +22,12 @@ public class getTable {
 				"ForAssignment","Assignment","Bool", "Rel", "LExpr",
 				"HExpr","Factor","Self_op","HLogic_op","LLogic_op",
 				"HMath_op","LMath_op","Judge_op","Bool_value","Array",
-				"Fora","Forb","Forc","HRel","LArray","M","N"
+				"Fora","Forb","Forc","HRel","LArray","M","N","F","T","E"
 			};
 		 String[] T= {
-				"(" ,")","main","int","bool","return",";","{","}","if",
-				"else","while","for","Identifier","Num","[","]","true",
-				"false","==","!=",">=","<=",">","<","+","-","*","/","%",
-				"||","&&","++","--","!","-",";","=","ε"
+				"(" ,")",";","{","}","[","]","a",
+				"==","!=",">=","<=",">","<","+","-","*","/","%",
+				"||","&&","++","--","!","-",";","=","ε","d"
 			};
 
 	 //HashMap<int,Status> statuses;
@@ -55,13 +57,14 @@ public class getTable {
 		}
 		return false;
 	}
-	
+
+
 	
 	public  void get_grammer() throws IOException {	
 		Grammer gtmp1 =new Grammer();
 		gtmp1.setLeft("S");
 		Vector temp1=new Vector();
-		temp1.addElement("Program");
+		temp1.addElement("ε");
 		gtmp1.setRight(temp1);	
 		G.addElement(gtmp1);
 		String fileName="D:/production.txt";
@@ -99,58 +102,95 @@ public class getTable {
 			storetemp.add(i);
 			index.put(G.get(i).getLeft(), storetemp);
 		} 
-		
 	
 }
 	public void get_first() {
 		boolean change=true;
 		boolean is_empty;//表示产生式右端为空串
-		int t;
 		while(change) {
 			change=false;
 			for(Grammer g :G) {
 				is_empty=true;
-				t=0;
-				System.out.println(g.getRight().size());
-				int len=g.getRight().size();
-				while(len<10) 
+				int t=0;
+				int len=g.getRight().size();	
+				while(is_empty&&t<len) 
 				{
-					len=len+1;
 					is_empty=false;
-//					if(!inTV(g.getRight().get(t).toString())) 
-//					{
-//						if(!first.get(g.left).contains(g.getRight().get(t).toString()))
-//						{
-//							first.get(g.left).add(g.getRight().get(t).toString());
-//							change=true;
-//						}
-//						continue;
-//					}
-//					for(Object i :first.get(g.getRight().get(t)))
-//					{
-//						if(!first.get(g.getLeft()).contains(i)) {
-//							first.get(g.getLeft()).add(i);
-//							change=true;
-//						}
-//					}
-//					if(first.get(g.getRight().get(t)).contains("ε")) {
-//						is_empty=true;
-//						t=t+1;
-//					}
+					String tempstr=g.getRight().get(t).toString();
+					if(first.get(g.getLeft())==null) {
+						HashSet set=new HashSet();
+						first.put(g.getLeft(), set);
+					}
+					if(first.get(tempstr)==null) {
+						HashSet set=new HashSet();
+						first.put(tempstr, set);
+						first.get(tempstr).add(tempstr);
+					}
+					if(!inTV(tempstr)) 
+					{	
+						if(!first.get(g.getLeft()).contains(tempstr))
+						{
+							first.get(g.getLeft()).add(tempstr);
+							change=true;
+						}
+						
+						continue;
+					}else {		
+						for(Object i :first.get(tempstr))
+						{	
+							
+								if(!first.get(g.getLeft()).contains(i))
+								{
+								first.get(g.getLeft()).add(i);
+								change=true;
+								}
+						}
+					
+					}
+		
+					if(first.get(tempstr).contains("ε")) {
+						is_empty=true;
+						t=t+1;
+					}
 				}
 				if(t==g.getRight().size()&&!first.get(g.getLeft()).contains("ε")) 
 				{
 					first.get(g.getLeft()).add("ε");
 					change=true;
 				}
-				
+				List tempV=Arrays.asList(V);
+				first.get(g.getLeft()).removeAll(tempV);
 			}
 			
 		}
-//		 first.remove("S");
-//		 for(int i=0;i<first.size();i++) {
-//			 System.out.println(first.values());
-//		 }
+	 first.remove("S");
+		
+		System.out.println(first.keySet());
+		System.out.println(first.values());
+		System.out.println(first.get("E"));
+		System.out.println(first.get("F"));
+		System.out.println(first.get("T"));
+	}
+	public void test() {
+		HashSet set=new HashSet();
+		Grammer gg=new Grammer();
+		gg.setLeft("changfan");
+		Vector temp=new Vector();
+		temp.add("dd");
+		temp.add("dd3");
+		temp.add("dd4");
+		temp.add("dd5");
+		temp.add("dd");
+		temp.add("dd");
+		gg.setRight(temp);
+		first.put("changfan", set);
+		System.out.println(first.get("changfan"));//初始化一个空
+		System.out.println(first.get("changfanww"));//未定义，容易出现指针为空的错误
+		if(first.get("changfan").contains(gg.getRight().get(0).toString()));
+		for(int i=0;i<gg.getRight().size();i++) {
+			System.out.println(gg.getRight().get(i).toString());
+		}
+		
 	}
 	public static  void  main(String[] args) 
 	{
