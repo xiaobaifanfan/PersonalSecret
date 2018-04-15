@@ -12,12 +12,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import mode.Grammer;
+import mode.Project;
+import mode.Status;
 public class getTable {
 	
 	 HashMap<String, HashSet> first=new HashMap<String, HashSet>();
 	 HashMap<String, HashSet> follow=new HashMap<String, HashSet>();
 	 HashMap<String, HashSet> index=new HashMap<String, HashSet>();
 	 Vector<Grammer> G = new Vector<Grammer>();//存储文法
+	 HashSet<Status> S=new HashSet<Status>();
+	 HashMap<Integer,HashMap<String,String>> Atable;
+	 HashMap<Integer,HashMap<String ,Integer>> Gtable;
 	 String[] V= {
 				"S","Program","Type","Block","Stmts","Decl","Stmt",
 				"ForAssignment","Assignment","Bool", "Rel", "LExpr",
@@ -207,29 +212,6 @@ public class getTable {
 		}
 		return set;
 	}
-	
-	
-	public void test() {
-		HashSet set=new HashSet();
-		Grammer gg=new Grammer();
-		gg.setLeft("changfan");
-		Vector temp=new Vector();
-		temp.add("dd");
-		temp.add("dd3");
-		temp.add("dd4");
-		temp.add("dd5");
-		temp.add("dd");
-		temp.add("dd");
-		gg.setRight(temp);
-		first.put("changfan", set);
-		System.out.println(first.get("changfan"));//初始化一个空
-		System.out.println(first.get("changfanww"));//未定义，容易出现指针为空的错误
-		if(first.get("changfan").contains(gg.getRight().get(0).toString()));
-		for(int i=0;i<gg.getRight().size();i++) {
-			System.out.println(gg.getRight().get(i).toString());
-		}
-		
-	}
 	public void get_follow() {
 		boolean change=true;
 		while(change) {
@@ -283,7 +265,9 @@ public class getTable {
 		System.out.println("follow(H)="+follow.get("H"));
 		}
 	}
-public static  void  main(String[] args) 
+	public void get_closure(Status p) {
+}
+	public static  void  main(String[] args) 
 	{
 	
 	getTable gettable=new getTable();
