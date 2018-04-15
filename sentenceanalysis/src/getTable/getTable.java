@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import mode.Grammer;
@@ -124,13 +125,13 @@ public class getTable {
 					if(first.get(tempstr)==null) {
 						HashSet set=new HashSet();
 						first.put(tempstr, set);
-						first.get(tempstr).add(tempstr);
 					}
 					if(!inTV(tempstr)) 
 					{	
 						if(!first.get(g.getLeft()).contains(tempstr))
 						{
 							first.get(g.getLeft()).add(tempstr);
+							first.get(tempstr).add(tempstr);
 							change=true;
 						}
 						
@@ -138,7 +139,6 @@ public class getTable {
 					}else {		
 						for(Object i :first.get(tempstr))
 						{	
-							
 								if(!first.get(g.getLeft()).contains(i))
 								{
 								first.get(g.getLeft()).add(i);
@@ -147,11 +147,14 @@ public class getTable {
 						}
 					
 					}
-		
 					if(first.get(tempstr).contains("ε")) {
 						is_empty=true;
 						t=t+1;
 					}
+				}
+				if(first.get(g.getLeft())==null) {
+					HashSet set=new HashSet();
+					first.put(g.getLeft(), set);
 				}
 				if(t==g.getRight().size()&&!first.get(g.getLeft()).contains("ε")) 
 				{
@@ -183,6 +186,10 @@ public class getTable {
 				set.add(str);
 				break;
 			}
+			if(first.get(str)==null) {
+				HashSet settemp=new HashSet();
+				first.put(str, set);
+			}
 			if(!first.get(str).contains("ε")) {
 				set.addAll(first.get(str));
 				break;
@@ -194,6 +201,10 @@ public class getTable {
 		
 		if(count==s.size())
 			set.add("ε");
+		Iterator<String> iterator=set.iterator();
+		while(iterator.hasNext()){
+			System.out.print(iterator.next());
+		}
 		return set;
 	}
 	
@@ -224,83 +235,43 @@ public class getTable {
 		while(change) {
 			change=false;
 			String search_next=null;
-			for(Grammer g:G) 
-			{
+			for(Grammer g:G) {
 				int len=g.getRight().size();
-				
-				if(len==1) {
-					if(follow.get(g.getLeft())==null) {
-						HashSet set=new HashSet();
-						set.add("#");
-						follow.put(g.getLeft(), set);
-					}
-					String sigalTV=g.getRight().get(0).toString();
-					if(inTV(sigalTV)) {
-						HashSet set=new HashSet();
-						set.add("#");
-						follow.put(sigalTV, set);
-						follow.get(sigalTV).addAll(follow.get(g.getLeft()));
-					}else {
-						continue;
-					}
-					
-					
+				if(follow.get(g.getLeft())==null) {
+					HashSet set=new HashSet();
+					set.add("#");
+					follow.put(g.getLeft(),set);
 				}
-				
-				for(int i=0;i<len;i++) 
-				{
-					String str=g.getRight().get(i).toString();
-					if(!inTV(str)) 
-					{
-						System.out.println("--------产生式"+g.getRight()+" "+i+str);
-						continue;	
-					}
-					
-					if(follow.get(str)==null) {
-						HashSet set=new HashSet();
-						set.add("#");
-						follow.put(str, set);
-					}
-					System.out.println("procedure------262");
-					if(i<len-1) {
-						search_next=g.getRight().get(i+1).toString();
+				for(int i=0;i<len;i++) {
+				 String str=g.getRight().get(i).toString();
+				 if(!inTV(str))
+					 continue;
+				 if(follow.get(str)==null) {
+					 HashSet tempset=new HashSet();
+					 tempset.add("#");
+					 follow.put(str, tempset);
+				 }
+				 if(i+1<len) {
+					 search_next=g.getRight().get(i+1).toString();
 						Vector tmp=new Vector();
 						HashSet stmp=new HashSet();
-						if(i+1<len) {
-						for(int k=i+1;k<len;k++) {
+						for(int k=i+1;k<len;k++)
+						{
 							tmp.add(g.getRight().get(k).toString());
 						}
 						HashSet tempset=judge_first(tmp,stmp);
 						follow.get(str).addAll(tempset);
-						System.out.println("procedure------273");
-						if(tempset.contains("ε")) {
-							System.out.println("procedure------273"+follow.get(str));
+						if(tempset.contains("ε"))
+						{
 							follow.get(str).remove("ε");
-							System.out.println("procedure------273"+follow.get(str));
-							if(follow.get(g.getLeft())==null) {
-								HashSet set=new HashSet();
-								set.add("#");
-								follow.put(g.getLeft(), set);
-							}
 							follow.get(str).addAll(follow.get(g.getLeft()));
-							System.out.println("procedure------279"+follow.get(str));
 						}
-						System.out.println("procedure------278");
-						}
-//						if(len<follow.get(str).size())
-//							change=true;
-
 				}else {
 					follow.get(str).addAll(follow.get(g.getLeft()));
-					System.out.println("procedure------285");
-//					if(len<follow.get(str).size())
-//						change=true;
-				
+				}
 			}
-					System.out.println(follow.get(g.getLeft()));
 		}
-		}
-		}
+			
 		follow.remove("S");
 		System.out.println("follow集如下：");
 		System.out.println(follow.keySet());
@@ -310,7 +281,7 @@ public class getTable {
 		System.out.println("follow(F)="+follow.get("F"));
 		System.out.println("follow(M)="+follow.get("M"));
 		System.out.println("follow(H)="+follow.get("H"));
-		
+		}
 	}
 public static  void  main(String[] args) 
 	{
@@ -319,7 +290,9 @@ public static  void  main(String[] args)
 	try {
 		gettable.get_grammer();
 		gettable.get_first();
+		gettable.get_first();
 		gettable.get_follow();
+		gettable.get_follow();//由于产生式的顺序不同，逐次搜索可能会有遗漏，所以需要搜索两次，确保全部添加正确。
 	} catch (IOException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
