@@ -3,7 +3,13 @@ package mode;
 public class Status {
 private Project project;
 private int  tip;
-private boolean judge;
+private boolean judgeEq;
+public boolean isJudgeEq() {
+	return judgeEq;
+}
+public void setJudgeEq(boolean judgeEq) {
+	this.judgeEq = judgeEq;
+}
 public Project getProject() {
 	return project;
 }
@@ -16,17 +22,13 @@ public int getTip() {
 public void setTip(int tip) {
 	this.tip = tip;
 }
-public boolean isJudge() {
-	return judge;
-}
-public void setJudge(boolean judge) {
-	this.judge = judge;
-}
+
+
 public Status() {
 	
 }
-public Status(Project project,int tip,boolean judge) {
-	this.judge=judge;
+public Status(Project project,int tip,boolean judgeEq) {
+	this.judgeEq=judgeEq;
 	this.project=project;
 	this.tip=tip;
 }

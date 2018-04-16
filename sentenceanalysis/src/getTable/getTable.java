@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,7 +21,8 @@ public class getTable {
 	 HashMap<String, HashSet> follow=new HashMap<String, HashSet>();
 	 HashMap<String, HashSet> index=new HashMap<String, HashSet>();
 	 Vector<Grammer> G = new Vector<Grammer>();//存储文法
-	 HashSet<Status> S=new HashSet<Status>();
+	 HashSet<Status> S;
+	 HashMap<Integer,HashSet<Status>> statuses;
 	 HashMap<Integer,HashMap<String,String>> Atable;
 	 HashMap<Integer,HashMap<String ,Integer>> Gtable;
 	 String[] V= {
@@ -265,7 +267,42 @@ public class getTable {
 		System.out.println("follow(H)="+follow.get("H"));
 		}
 	}
-	public void get_closure(Status p) {
+	public void get_closure(HashSet<Status> StatusSet) {
+		boolean change=true;
+			HashSet <Status> pptmp=new HashSet<Status>();
+		while(change) {
+			change=false;
+			pptmp=StatusSet;
+			for(Status pro:pptmp) {
+				int pro_num=pro.getProject().getPro_num();
+				int pro_dot_position=pro.getProject().getDot_positon();
+				HashSet<String> pro_successor=pro.getProject().getSuccessors();
+				if(pro_dot_position==G.get(pro_num).getRight().size())
+					continue;
+				String strV=G.get(pro_num).getRight().get(pro_dot_position).toString();
+				if(!inTV(strV))
+					continue;
+				HashSet<String> new_successor=new HashSet<String>();
+				//求新项目的后继符集
+				if(pro_dot_position==G.get(pro_num).getRight().size()-1)
+					new_successor=pro_successor;
+				else {
+					Vector<String> vtmp=new Vector<String>();
+					for(int i=pro_dot_position+1;i<G.get(pro_num).getRight().size();i++) {
+						vtmp.add(G.get(pro_num).getRight().get(i).toString());
+					}
+					HashSet temp_successor=judge_first(vtmp,new_successor);
+					if(temp_successor.contains("ε")) {
+						temp_successor.addAll(pro_successor);
+						temp_successor.add("ε");
+					}
+				}
+				Project ptmp = null;
+				for(Object i:index.get(strV)) {
+					ptmp.setPro_num(Integer.parseInt(i.toString()));
+				}
+			}
+		}
 }
 	public static  void  main(String[] args) 
 	{
