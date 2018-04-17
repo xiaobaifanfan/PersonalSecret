@@ -1,35 +1,34 @@
 package mode;
 
 public class Status {
-private Project project;
-private int  tip;
-private boolean judgeEq;
-public boolean isJudgeEq() {
-	return judgeEq;
-}
-public void setJudgeEq(boolean judgeEq) {
-	this.judgeEq = judgeEq;
-}
+ public Project project;
+
 public Project getProject() {
 	return project;
 }
+
 public void setProject(Project project) {
 	this.project = project;
 }
-public int getTip() {
-	return tip;
-}
-public void setTip(int tip) {
-	this.tip = tip;
+
+public Status(Project project) {
+	// TODO Auto-generated constructor stub
+	this.project=project;
 }
 
 
 public Status() {
-	
+	// TODO Auto-generated constructor stub
 }
-public Status(Project project,int tip,boolean judgeEq) {
-	this.judgeEq=judgeEq;
-	this.project=project;
-	this.tip=tip;
+
+public int hashCode(Project pro) {
+	return pro.getPro_num()*pro.getDot_positon();
 }
+
+public boolean equals(Project p1,Project p2) {
+if(p1.getDot_positon()==p2.getDot_positon()&&p1.getPro_num()==p2.getPro_num())
+ return true;
+return false;
+}
+
 }
