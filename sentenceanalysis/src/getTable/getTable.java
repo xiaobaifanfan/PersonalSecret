@@ -294,8 +294,7 @@ public class getTable {
 					continue;		
 				}
 					
-				//HashSet<String> new_successor = new HashSet<String>();
-				HashSet<String> new_successor =null;
+				HashSet<String> new_successor = new HashSet<String>();
 				System.out.println("----------------290");
 				if(Pdotposi==G.get(Pnum).getRight().size()-1) {
 					new_successor=Psuccessor;
@@ -315,7 +314,7 @@ public class getTable {
 					ptmp.setPro_num(Integer.parseInt(i.toString()));
 					ptmp.setDot_positon(0);
 					ptmp.setSuccessors(new_successor);
-					Status tempStatus=null;
+					Status tempStatus=new Status();
 					tempStatus.setProject(ptmp);
 					if(!p.contains(tempStatus)) {
 						p.add(tempStatus);
@@ -324,15 +323,18 @@ public class getTable {
 						
 						Iterator<Status> it=p.iterator();
 						int  tempStatusSize=0;
+						Status tempS=new Status();
 						while(it.hasNext()) {
-							if(it.next().getProject().getDot_positon()==tempStatus.getProject().getDot_positon()&&it.next().getProject().getPro_num()==tempStatus.getProject().getPro_num())
+							tempS=it.next();
+							if(tempS.getProject().getDot_positon()==tempStatus.getProject().getDot_positon()&&tempS.getProject().getPro_num()==tempStatus.getProject().getPro_num())
 								{
-								 tempStatusSize=it.next().getProject().getSuccessors().size();
+								 tempStatusSize=tempS.getProject().getSuccessors().size();
+								 it.remove();
 								break;
 								}
 						}
-						tempStatus.getProject().getSuccessors().addAll(it.next().getProject().getSuccessors());
-						p.remove(tempStatus);
+						tempStatus.getProject().getSuccessors().addAll(tempS.getProject().getSuccessors());
+						//p.remove(tempStatus);
 						p.add(tempStatus);
 						if( tempStatusSize<tempStatus.getProject().getSuccessors().size())
 							change=true;
@@ -341,6 +343,7 @@ public class getTable {
 				}
 		}
 		System.out.println("----------------343");
+			System.out.print(p);
 		return p;
 	}
 	public boolean judge_repeat(HashSet<Status> s1,HashSet<Status> s2) {
@@ -392,31 +395,23 @@ public class getTable {
 		Project ptmp=new Project();
 		ptmp.setDot_positon(0);
 		ptmp.setPro_num(0);
-		//HashSet<String>set=null;
 		HashSet<String>set=new HashSet<String>();
-		System.out.println("----------------381");
 		set.add("#");
 		ptmp.setSuccessors(set);
 		Status ptmpstatus=new Status();
 		ptmpstatus.setProject(ptmp);
 		HashSet<Status> tmp_status=new HashSet<Status>();
 		tmp_status.add(ptmpstatus);
-		System.out.println("----------------387");
 		tmp_status=get_closure(tmp_status);
-		System.out.println("----------------290");
 		statuses.put(t, tmp_status);
-		System.out.println("----------------398");
 		boolean change=true;
 		HashSet<Integer> record = new HashSet<Integer>();
 		HashMap<Integer,HashSet<Status>> sstmp=new HashMap<Integer,HashSet<Status>>();
 		HashSet<String> conflict;
-		System.out.println("----------------398");
 		while(change) {
 			change=false;
 			sstmp=statuses;
-			Iterator sta=sstmp.keySet().iterator();
-			while(sta.hasNext()) {
-				int key=Integer.parseInt(sta.next().toString());
+			for(int key:sstmp.keySet()) {
 				HashSet<Status> valstatus=sstmp.get(key);
 				if(record.contains(key))
 					continue;
@@ -425,7 +420,6 @@ public class getTable {
 				for(Status pros:valstatus) {
 					if(G.get(pros.getProject().getPro_num()).getRight().get(0)=="¦Å"||pros.getProject().getDot_positon()==G.get(pros.getProject().getPro_num()).getRight().size()) {
 						for(String sucess:pros.getProject().getSuccessors()) {
-							System.out.println("----------------408");
 							if(Atable.get(key)==null) {
 								HashMap<String, String> tempatable=new HashMap<String ,String>();
 								Atable.put(key, tempatable);
@@ -434,20 +428,17 @@ public class getTable {
 								Atable.get(key).put(sucess, "r"+pros.getProject().getPro_num());
 							System.out.println(Atable.size());
 						}
-						System.out.println("----------------435");
 						String trans=G.get(pros.getProject().getPro_num()).getRight().get(pros.getProject().getDot_positon()).toString();
 						if(record_status.contains(trans))
 							continue;
 						record_status.add(trans);
 						tmp_status.clear();
-						System.out.println("----------------435");
 						ptmp.setPro_num(pros.getProject().getPro_num());
 						ptmp.setDot_positon(pros.getProject().getDot_positon());
 						ptmp.setSuccessors(pros.getProject().getSuccessors());
 						Status tmpS=new Status();
 						tmpS.setProject(ptmp);
 						tmp_status.add(tmpS);
-						System.out.println("----------------435");
 						for(Status protmp:valstatus) {
 							if(G.get(protmp.getProject().getPro_num()).getRight().get(protmp.getProject().getDot_positon())==trans&&!(protmp==pros)) {
 								ptmp.setPro_num(protmp.getProject().getPro_num());
@@ -458,12 +449,9 @@ public class getTable {
 								tmp_status.add(tmpSS);
 							}
 						}
-						System.out.println("----------------435");
 						tmp_status=get_closure(tmp_status);
 						boolean flag=true;
-						Iterator s=sstmp.keySet().iterator();
-						while(s.hasNext()) {
-							int tipkey=Integer.parseInt(s.next().toString());
+						for(int tipkey:sstmp.keySet()) {
 							HashSet<Status> tempstatus=sstmp.get(tipkey);
 							if(judge_repeat(tempstatus,tmp_status)) {
 								if(inTV(trans))
@@ -490,31 +478,44 @@ public class getTable {
 						if(inTV(trans))
 						{
 							if(Gtable.get(key)==null) {
-								Gtable.put(key, null);
-							}
+								HashMap<String ,Integer> initgtabletiem=new HashMap<String ,Integer>();
+								Gtable.put(key, initgtabletiem)
+;							}
 							Gtable.get(key).put(trans, t);
+							System.out.println("------------------------487         V");
 						}
 						else {
 							if(Atable.get(key)==null) {
-								Atable.put(key, null);
+								HashMap<String ,String> initgtabletiem=new HashMap<String ,String>();
+								Atable.put(key, initgtabletiem);
 							}
 							Atable.get(key).put(trans, "s"+t);
+							System.out.println("------------------------487          T");
 						}
-							
-				
 						}
 					}
 				}
-			if(Atable.get(Gtable.get(0).get("Program"))==null)
-			{
-				Atable.put(Gtable.get(0).get("Program"),null);
-			}
-			Atable.get(Gtable.get(0).get("Program")).put("#", "acc");
+			System.out.println(Gtable);
+			System.out.println(Atable);
+			System.out.println("--------------555----------487");
+		
+//			System.out.println(Gtable.get(0).get("Program"));
+//			if(Atable.get(Gtable.get(0).get("Program"))==null)
+//			{
+//				System.out.println("------------------------516");
+//				Atable.put(Gtable.get(0).get("Program"),null);
+//			}
+//			System.out.println("------------------------487");
+//			Atable.get(Gtable.get(0).get("Program")).put("#", "acc");
 			}
 			
 			
 		}
-		
+		public HashMap<String ,Integer> iniGtableitem(String trans){
+			HashMap<String ,Integer> temp=new HashMap<String ,Integer>();
+			temp.put(trans, 0);
+			return temp;
+		}
 	
 	public static  void  main(String[] args) 
 	{
