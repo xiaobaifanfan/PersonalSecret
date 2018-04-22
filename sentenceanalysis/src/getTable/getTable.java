@@ -7,26 +7,29 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Vector;
+
+
+
 import mode.Grammer;
 import mode.Project;
-import mode.Status;
 public class getTable {
-	
 	 HashMap<String, HashSet> first=new HashMap<String, HashSet>();
 	 HashMap<String, HashSet> follow=new HashMap<String, HashSet>();
 	 HashMap<String, HashSet> index=new HashMap<String, HashSet>();
 	 Vector<Grammer> G = new Vector<Grammer>();//存储文法
-	 HashSet<Status> S=new HashSet<Status>();
-	 HashMap<Integer,HashSet<Status>> statuses=new HashMap<Integer,HashSet<Status>>();
-	 HashMap<Integer,HashMap<String,String>> Atable=new HashMap<Integer,HashMap<String,String>> ();
-	 HashMap<Integer,HashMap<String ,Integer>> Gtable=new HashMap<Integer,HashMap<String ,Integer>>();
+	 ArrayList<HashMap<String,String>> Atable=new ArrayList<HashMap<String,String>>();
+	 ArrayList<HashMap<String,Integer>> Gtable=new ArrayList<HashMap<String,Integer>>();
+	 ArrayList<Project> product=new ArrayList<Project>();
+	 ArrayList<HashMap<Integer,ArrayList<Project>>> status=new ArrayList<HashMap<Integer,ArrayList<Project>>>();
 	 String[] V= {
 				"S","Program","Type","Block","Stmts","Decl","Stmt",
 				"ForAssignment","Assignment","Bool", "Rel", "LExpr",
@@ -47,10 +50,17 @@ public class getTable {
 		 HashSet<String> empty_set=new HashSet<String>();
 		 HashSet<String> empty_set1=new HashSet<String>();//follow.get("Program").add("#");为了怕覆盖
 		 HashSet<String> empty_set_int=new HashSet<String>();
+		 HashMap<String,String> emptystatus=new HashMap<String,String>();
+		 HashMap<String,Integer> emptystatus_int=new HashMap<String,Integer>();
 		 for(int i=0;i<V.length;i++) {
 			 first.put(String.valueOf(i), empty_set);
 			 follow.put(String.valueOf(i), empty_set);
 			 index.put(String.valueOf(i), empty_set_int);
+			 
+		 }
+		 for(int i=0;i<500;i++) {
+			Atable.add(emptystatus);
+			Gtable.add(emptystatus_int);
 		 }
 		 
 		empty_set1.add("#");
@@ -67,9 +77,6 @@ public class getTable {
 		}
 		return false;
 	}
-
-
-	
 	public  void get_grammer() throws IOException {	
 		Grammer gtmp1 =new Grammer();
 		gtmp1.setLeft("S");
@@ -184,11 +191,12 @@ public class getTable {
 		System.out.println("first(T)="+first.get("T"));
 		System.out.println("first(M)="+first.get("M"));
 		System.out.println("first(H)="+first.get("H"));
-		System.out.println("first(Program)="+first.get("Program"));
+		
 		
 	}
-	public HashSet  judge_first(Vector s,HashSet set) {
+	public ArrayList<String>  judge_first(Vector s,ArrayList<String> tmpset) {
 		int count=0;
+		HashSet<String> set=new HashSet(tmpset);
 		for(int i=0;i<s.size();i++)
 		{
 			String str=s.get(i).toString();
@@ -215,308 +223,203 @@ public class getTable {
 		while(iterator.hasNext()){
 			System.out.print(iterator.next());
 		}
-		return set;
+		tmpset.clear();
+		tmpset=new ArrayList(set);
+		return tmpset;
 	}
-	public void get_follow() {
+	
+	public ArrayList<Project> get_clousre(ArrayList<Project> p){
 		boolean change=true;
+		ArrayList<Project> tmpP=null;
 		while(change) {
 			change=false;
-			String search_next=null;
-			for(Grammer g:G) {
-				int len=g.getRight().size();
-				if(follow.get(g.getLeft())==null) {
-					HashSet set=new HashSet();
-					set.add("#");
-					follow.put(g.getLeft(),set);
-				}
-				for(int i=0;i<len;i++) {
-				 String str=g.getRight().get(i).toString();
-				 if(!inTV(str))
-					 continue;
-				 if(follow.get(str)==null) {
-					 HashSet tempset=new HashSet();
-					 tempset.add("#");
-					 follow.put(str, tempset);
-				 }
-				 if(i+1<len) {
-					 search_next=g.getRight().get(i+1).toString();
-						Vector tmp=new Vector();
-						HashSet stmp=new HashSet();
-						for(int k=i+1;k<len;k++)
+			tmpP=p;
+			for(int i=0;i<tmpP.size();i++) {
+				if(tmpP.get(i).getDot_positon()==G.get(tmpP.get(i).getPro_num()).getRight().size())
+					continue;
+				String strV=G.get(tmpP.get(i).getPro_num()).getRight().get(tmpP.get(i).getDot_positon()).toString();
+				if(!inTV(strV))
+					continue;
+				ArrayList<String> new_successor=new ArrayList<String>();
+				if(tmpP.get(i).getDot_positon()==G.get(tmpP.get(i).getPro_num()).getRight().size()-1)
+					{
+					new_successor=tmpP.get(i).getSuccessors();
+					}else {
+						Vector<String> vtmp=new Vector<String>();
+						for(int j=tmpP.get(i).getDot_positon()+1;j<G.get(tmpP.get(i).getPro_num()).getRight().size();j++)
 						{
-							tmp.add(g.getRight().get(k).toString());
+							vtmp.add(G.get(tmpP.get(i).getPro_num()).getRight().get(j).toString());
 						}
-						HashSet tempset=judge_first(tmp,stmp);
-						follow.get(str).addAll(tempset);
-						if(tempset.contains("ε"))
-						{
-							follow.get(str).remove("ε");
-							follow.get(str).addAll(follow.get(g.getLeft()));
+						new_successor=judge_first(vtmp,new_successor);
+						if(new_successor.contains("ε")) {
+							new_successor.addAll(tmpP.get(i).getSuccessors());
+							new_successor=clearrepitmp(new_successor);
+							new_successor.remove("ε");
 						}
-				}else {
-					follow.get(str).addAll(follow.get(g.getLeft()));
-				}
+					}
+					Project ptmp=new Project();
+					for(Object it:index.get(strV)) {
+						ptmp.setPro_num(Integer.parseInt(it.toString()));
+						ptmp.setDot_positon(0);
+						ptmp.setSuccessors(new_successor);
+						boolean flag=false;
+						for(int j=0;j<p.size();j++) {
+							if(ptmp.getPro_num()==p.get(j).getPro_num()&&ptmp.getDot_positon()==p.get(j).getDot_positon()) {
+								int newsize=p.get(j).getSuccessors().size();
+								ArrayList<String> tempsuc=ptmp.getSuccessors();
+								tempsuc.addAll(p.get(j).getSuccessors());
+								tempsuc=clearrepitmp(tempsuc);
+								p.get(j).setSuccessors(tempsuc);
+								flag=true;
+								if(newsize<ptmp.getSuccessors().size())
+									change=true;
+							}
+						}
+						if(!flag) {
+							p.add(ptmp);
+							change=true;
+						}
+					}
+				
 			}
 		}
-			
-		follow.remove("S");
-//		System.out.println("follow集如下：");
-//		System.out.println(follow.keySet());
-//		System.out.println(follow.values());
-		System.out.println("follow(E)="+follow.get("E"));
-		System.out.println("follow(T)="+follow.get("T"));
-		System.out.println("follow(F)="+follow.get("F"));
-		System.out.println("follow(M)="+follow.get("M"));
-		System.out.println("follow(H)="+follow.get("H"));
-		System.out.println("follow(Program)="+follow.get("Program"));
+		for(int i=0;i<p.size();i++) {
+			System.out.println(p.get(i).getSuccessors());
 		}
-	}
-	public HashSet<Status> get_closure(HashSet<Status> p) {
-		boolean change=true;
-		HashSet<Status> pptmp=new HashSet<Status>();
-		System.out.println("----------------280");
-		while(change) {
-			change=false;
-			pptmp=p;
-			System.out.println("----------------280");
-			for(Status pro: pptmp) {
-				int Pnum=pro.getProject().getPro_num();
-				int Pdotposi=pro.getProject().getDot_positon();
-				HashSet<String> Psuccessor=pro.getProject().getSuccessors();
-				System.out.println("----------------280");
-				System.out.println(Pnum);
-				if(Pdotposi==G.get(Pnum).getRight().size()) 
-					continue;
-				String strV=G.get(Pnum).getRight().get(Pdotposi).toString();
-				System.out.println("----------------291"+strV);
-				if(!inTV(strV)) {
-					System.out.println("----------------290");
-					continue;		
-				}
-					
-				HashSet<String> new_successor = new HashSet<String>();
-				System.out.println("----------------290");
-				if(Pdotposi==G.get(Pnum).getRight().size()-1) {
-					new_successor=Psuccessor;
-				}else {
-					Vector<String> vtmp=new Vector<String>();
-					for(int i=Pdotposi+1;i<G.get(Pnum).getRight().size();i++) {
-						vtmp.add(G.get(Pnum).getRight().get(i).toString());
-					}
-					new_successor=judge_first(vtmp,new_successor);
-					if(new_successor.contains("ε")) {
-						new_successor.addAll(Psuccessor);
-						new_successor.remove("ε");
-					}
-				}
-				Project ptmp=new Project();
-				for(Object i:index.get(strV)) {
-					ptmp.setPro_num(Integer.parseInt(i.toString()));
-					ptmp.setDot_positon(0);
-					ptmp.setSuccessors(new_successor);
-					Status tempStatus=new Status();
-					tempStatus.setProject(ptmp);
-					if(!p.contains(tempStatus)) {
-						p.add(tempStatus);
-						change=true;
-					}else {
-						
-						Iterator<Status> it=p.iterator();
-						int  tempStatusSize=0;
-						Status tempS=new Status();
-						while(it.hasNext()) {
-							tempS=it.next();
-							if(tempS.getProject().getDot_positon()==tempStatus.getProject().getDot_positon()&&tempS.getProject().getPro_num()==tempStatus.getProject().getPro_num())
-								{
-								 tempStatusSize=tempS.getProject().getSuccessors().size();
-								 it.remove();
-								break;
-								}
-						}
-						tempStatus.getProject().getSuccessors().addAll(tempS.getProject().getSuccessors());
-						//p.remove(tempStatus);
-						p.add(tempStatus);
-						if( tempStatusSize<tempStatus.getProject().getSuccessors().size())
-							change=true;
-					}
-				}
-				}
-		}
-		System.out.println("----------------343");
-			System.out.print(p);
 		return p;
 	}
-	public boolean judge_repeat(HashSet<Status> s1,HashSet<Status> s2) {
-		if(s1.size()==s2.size()) {
-			for(Status pros:s1) {
-				if(!s2.contains(pros))
-				{
-					return false;		
-				}else {
-				for(Status Ppro:s2)
-				{
-					Status tempstatus=null;
-					if(Ppro.getProject().getDot_positon()==pros.getProject().getDot_positon()&&Ppro.getProject().getPro_num()==pros.getProject().getPro_num())
-					{
-						tempstatus=Ppro;
-						if(!(pros==tempstatus))
-							return false;
-					}
-				}
-				
-			}	
-		}
-		return true;
-		}
+
+public ArrayList clearrepitmp(ArrayList list) {
+	 HashSet templist = new HashSet(list);
+     list.clear();
+     list.addAll(templist);
+   return list;  
+ }
+boolean judge_repeat(ArrayList<Project> status1,ArrayList<Project> status2) {
+	if(status1.size()!=status2.size())
 		return false;
+	for(int i=0;i<status1.size();i++) {
+		if(!status2.contains(status.get(i)))
+			return false;
 	}
-	public boolean judge_conflict(HashSet<Status> s,HashSet<String> result) {
-		boolean flag=false;
-		HashSet<String> tmp=null;
-		for(Status pro:s) {
-			if(pro.getProject().getDot_positon()==G.get(pro.getProject().getPro_num()).getRight().size())
-				tmp.addAll(pro.getProject().getSuccessors());
-		}
-		for(Status pro:s) {
-			if(pro.getProject().getDot_positon()<G.get(pro.getProject().getPro_num()).getRight().size()) {
-				String next=G.get(pro.getProject().getPro_num()).getRight().get(pro.getProject().getDot_positon()).toString();
-				if(tmp.contains(next)) {
-					result.add(next);
-					flag=true;
-				}
-				
-			}
-		}
-		return flag;
-		
-	}
-	public void get_status() {
-		int t=0;
-		Project ptmp=new Project();
-		ptmp.setDot_positon(0);
-		ptmp.setPro_num(0);
-		HashSet<String>set=new HashSet<String>();
-		set.add("#");
-		ptmp.setSuccessors(set);
-		Status ptmpstatus=new Status();
-		ptmpstatus.setProject(ptmp);
-		HashSet<Status> tmp_status=new HashSet<Status>();
-		tmp_status.add(ptmpstatus);
-		tmp_status=get_closure(tmp_status);
-		statuses.put(t, tmp_status);
-		boolean change=true;
-		HashSet<Integer> record = new HashSet<Integer>();
-		HashMap<Integer,HashSet<Status>> sstmp=new HashMap<Integer,HashSet<Status>>();
-		HashSet<String> conflict;
-		while(change) {
-			change=false;
-			sstmp=statuses;
-			for(int key:sstmp.keySet()) {
-				HashSet<Status> valstatus=sstmp.get(key);
-				if(record.contains(key))
-					continue;
-				record.add(key);
-				HashSet<String> record_status=new HashSet<String>();
-				for(Status pros:valstatus) {
-					if(G.get(pros.getProject().getPro_num()).getRight().get(0)=="ε"||pros.getProject().getDot_positon()==G.get(pros.getProject().getPro_num()).getRight().size()) {
-						for(String sucess:pros.getProject().getSuccessors()) {
-							if(Atable.get(key)==null) {
-								HashMap<String, String> tempatable=new HashMap<String ,String>();
-								Atable.put(key, tempatable);
+	return true;
+}
+public void get_stauts() {
+	int t=0;
+	Project ptmp=new Project();
+	ArrayList<String> intisuc=new ArrayList<String>();
+	intisuc.add("#");
+	ptmp.setDot_positon(0);
+	ptmp.setPro_num(0);
+	ptmp.setSuccessors(intisuc);
+	product.clear();
+	product.add(ptmp);
+	product=get_clousre(product);
+	HashMap<Integer,ArrayList<Project>> temp=new HashMap<Integer,ArrayList<Project>>();
+	ArrayList<Project> iniarray=new ArrayList<Project> ();
+	iniarray.add(ptmp);
+	temp.put(t, iniarray);
+	status.add(temp);
+	
+	boolean change=true;
+	Set record=new HashSet();
+	 ArrayList<HashMap<Integer,ArrayList<Project>>> sstmp=new ArrayList<HashMap<Integer,ArrayList<Project>>>();
+	Set conflict=new HashSet();
+	while(change) {
+		change=false;
+		sstmp=status;
+		for(int i=0;i<sstmp.size();i++) {
+			if(record.contains(sstmp.get(i).keySet()))
+				continue;
+			Iterator<Integer> it = sstmp.get(i).keySet().iterator();
+			int storestatus=0;
+			while(it.hasNext())//判断是否有下一个
+			{storestatus=it.next().intValue();}
+			System.out.println(sstmp.get(i).keySet().size());
+			record.add(sstmp.get(i).keySet());
+			
+			Set<String> record_status=new HashSet<String>();
+
+		Collection<ArrayList<Project>> pros = sstmp.get(i).values();
+			for(ArrayList<Project> proitem:pros) {
+				for(int j=0;j<proitem.size();j++) {
+					int pro_num=proitem.get(j).getPro_num();
+					int pro_dotposi=proitem.get(j).getDot_positon();
+					ArrayList<String> pro_succor=proitem.get(j).getSuccessors();
+					if(G.get(pro_num).getRight().get(0)=="ε"||pro_dotposi==G.get(pro_num).getRight().size()){
+						for(String str:pro_succor){
+							HashMap<String,String> tempAitem=new HashMap<String,String>();
+							tempAitem.put(str, "r"+pro_num);
+							Atable.set(storestatus, tempAitem);
 							}
-							if(!Atable.get(key).containsKey(sucess))
-								Atable.get(key).put(sucess, "r"+pros.getProject().getPro_num());
-							System.out.println(Atable.size());
-						}
-						String trans=G.get(pros.getProject().getPro_num()).getRight().get(pros.getProject().getDot_positon()).toString();
-						if(record_status.contains(trans))
-							continue;
-						record_status.add(trans);
-						tmp_status.clear();
-						ptmp.setPro_num(pros.getProject().getPro_num());
-						ptmp.setDot_positon(pros.getProject().getDot_positon());
-						ptmp.setSuccessors(pros.getProject().getSuccessors());
-						Status tmpS=new Status();
-						tmpS.setProject(ptmp);
-						tmp_status.add(tmpS);
-						for(Status protmp:valstatus) {
-							if(G.get(protmp.getProject().getPro_num()).getRight().get(protmp.getProject().getDot_positon())==trans&&!(protmp==pros)) {
-								ptmp.setPro_num(protmp.getProject().getPro_num());
-								ptmp.setDot_positon(protmp.getProject().getDot_positon());
-								ptmp.setSuccessors(protmp.getProject().getSuccessors());
-								Status tmpSS=new Status();
-								tmpSS.setProject(ptmp);
-								tmp_status.add(tmpSS);
+					}
+					String trans=G.get(pro_num).getRight().get(pro_dotposi).toString();
+					if(record_status.contains(trans))
+						continue;
+					record_status.add(trans);
+					iniarray.clear();
+					ptmp.setPro_num(pro_num);
+					ptmp.setDot_positon(pro_dotposi);
+					ptmp.setSuccessors(pro_succor);
+					iniarray.add(ptmp);
+					for(ArrayList<Project> protmp:pros) {
+						for(int k=0;k<protmp.size();k++) {
+							if(G.get(protmp.get(k).getPro_num()).getRight().get(protmp.get(k).getDot_positon())==trans&&!(protmp.get(k)==proitem.get(j)))
+							{
+								ptmp.setPro_num(protmp.get(k).getPro_num());
+								ptmp.setDot_positon(protmp.get(k).getDot_positon());
+								ptmp.setSuccessors(protmp.get(k).getSuccessors());
+								iniarray.add(ptmp);
+								
 							}
 						}
-						tmp_status=get_closure(tmp_status);
-						boolean flag=true;
-						for(int tipkey:sstmp.keySet()) {
-							HashSet<Status> tempstatus=sstmp.get(tipkey);
-							if(judge_repeat(tempstatus,tmp_status)) {
-								if(inTV(trans))
-								{
-									if(Gtable.get(key)==null) {
-										Gtable.put(key, null);
-									}
-									Gtable.get(key).put(trans, tipkey);
-									}
-								else {
-									if(Atable.get(key)==null) {
-										Atable.put(key, null);
-									}
-									Atable.get(key).put(trans, "s"+tipkey);
+					}
+					iniarray=get_clousre(iniarray);
+					boolean flag=true;
+					for(HashMap<Integer, ArrayList<Project>> s:sstmp) {
+						for(ArrayList<Project> newsta:s.values()) {
+							if(judge_repeat(newsta,iniarray)) {
+							if(inTV(trans)) {
+								HashMap<String,Integer> tempGitem=new HashMap<String,Integer>();
+								storestatus=0;
+								for(int sStatus:s.keySet()) {
+									storestatus=sStatus;
 								}
-								flag=false;
-								break;
+								
+								tempGitem.put(trans, storestatus);
+								Gtable.set(storestatus,tempGitem);
+							}else {
+								HashMap<String,String> tempAitem=new HashMap<String,String>();
+								tempAitem.put(trans, "s"+s.keySet());
+								Atable.set(storestatus, tempAitem);
+							}
+							flag=false;
+							break;
+							
+								
 							}
 						}
 						if(!flag)
 							continue;
-						statuses.put(++t, tmp_status);
+						HashMap<Integer,ArrayList<Project>> tempitemsta=new HashMap<Integer,ArrayList<Project>>();
+						tempitemsta.put(++t, iniarray);
 						change=true;
-						if(inTV(trans))
-						{
-							if(Gtable.get(key)==null) {
-								HashMap<String ,Integer> initgtabletiem=new HashMap<String ,Integer>();
-								Gtable.put(key, initgtabletiem)
-;							}
-							Gtable.get(key).put(trans, t);
-							System.out.println("------------------------487         V");
-						}
-						else {
-							if(Atable.get(key)==null) {
-								HashMap<String ,String> initgtabletiem=new HashMap<String ,String>();
-								Atable.put(key, initgtabletiem);
-							}
-							Atable.get(key).put(trans, "s"+t);
-							System.out.println("------------------------487          T");
-						}
-						}
+						
 					}
+					
 				}
-			System.out.println(Gtable);
-			System.out.println(Atable);
-			System.out.println("--------------555----------487");
-		
-//			System.out.println(Gtable.get(0).get("Program"));
-//			if(Atable.get(Gtable.get(0).get("Program"))==null)
-//			{
-//				System.out.println("------------------------516");
-//				Atable.put(Gtable.get(0).get("Program"),null);
-//			}
-//			System.out.println("------------------------487");
-//			Atable.get(Gtable.get(0).get("Program")).put("#", "acc");
 			}
-			
-			
 		}
-		public HashMap<String ,Integer> iniGtableitem(String trans){
-			HashMap<String ,Integer> temp=new HashMap<String ,Integer>();
-			temp.put(trans, 0);
-			return temp;
+		for(int h=0;h<Gtable.size();h++) {
+			System.out.print(Gtable.get(h).keySet()+" ");
+			System.out.print(Gtable.get(h).values()+" ");
+			System.out.println(Atable.get(h).keySet()+" ");
+			System.out.print(Atable.get(h).values()+" ");
 		}
+
+	}
 	
+}
 	public static  void  main(String[] args) 
 	{
 	
@@ -525,9 +428,9 @@ public class getTable {
 		gettable.get_grammer();
 		gettable.get_first();
 		gettable.get_first();
-		gettable.get_follow();
-		gettable.get_follow();//由于产生式的顺序不同，逐次搜索可能会有遗漏，所以需要搜索两次，确保全部添加正确。
-		gettable.get_status();
+		gettable.get_stauts();
+		
+		
 	} catch (IOException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
