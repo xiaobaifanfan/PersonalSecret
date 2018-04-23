@@ -1,5 +1,6 @@
 package getTable;
 
+import java.awt.List;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,6 +9,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
+
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 import mode.Grammer;
 
@@ -70,38 +73,39 @@ public class getTable {
 		}
 		 Vector temp=new Vector();
 		 temp.add(G.get(0).getLeft());
+		 //temp.add("ε");
 		 tmp.setRight(temp);
 		 G.add(0, tmp);
 		 existV.add(0, "Y");
-//		 System.out.println("非终结符V集合如下:");
-//		 for(int i1=0;i1<V.length;i1++)
-//		 {
-//			 System.out.print(V[i1]+" ");
-//		 }
-//		 System.out.println("");
-//		 System.out.println("终结符T集合如下: ");
-//		 for(int i1=0;i1<T.length;i1++)
-//		 {
-//			 System.out.print(T[i1]+" ");
-//		 }
-//		 System.out.println("");
-//		 System.out.println("读入的文法G向量如下:");
-//		 for(int i1=0;i1<G.size();i1++)
-//		 {
-//			 System.out.println(G.get(i1).getLeft()+" "+G.get(i1).getRight());
-//		 }
-//		 System.out.println("");
-//		 System.out.println("文本中的非终结符如下:");
-//		 for(int i1=0;i1<existV.size();i1++)
-//		 {
-//			 System.out.print(existV.get(i1)+" ");
-//		 }
-//		 System.out.println("");
-//		 System.out.println("文本中的终结符如下:");
-//		 for(int i1=0;i1<existT.size();i1++)
-//		 {
-//			 System.out.print(existT.get(i1)+" ");
-//		 }
+		 System.out.println("非终结符V集合如下:");
+		 for(int i1=0;i1<V.length;i1++)
+		 {
+			 System.out.print(V[i1]+" ");
+		 }
+		 System.out.println("");
+		 System.out.println("终结符T集合如下: ");
+		 for(int i1=0;i1<T.length;i1++)
+		 {
+			 System.out.print(T[i1]+" ");
+		 }
+		 System.out.println("");
+		 System.out.println("读入的文法G向量如下:");
+		 for(int i1=0;i1<G.size();i1++)
+		 {
+			 System.out.println(G.get(i1).getLeft()+" "+G.get(i1).getRight());
+		 }
+		 System.out.println("");
+		 System.out.println("文本中的非终结符如下:");
+		 for(int i1=0;i1<existV.size();i1++)
+		 {
+			 System.out.print(existV.get(i1)+" ");
+		 }
+		 System.out.println("");
+		 System.out.println("文本中的终结符如下:");
+		 for(int i1=0;i1<existT.size();i1++)
+		 {
+			 System.out.print(existT.get(i1)+" ");
+		 }
 	 }
 	 public boolean inVT(String str)
 	 {
@@ -124,47 +128,52 @@ public class getTable {
 		 }
 	 }
 	 public void get_first() {
-		 initfirst();
+		 
 		 boolean change=true;
-		 boolean isempty=true;
-		 int t=0;
+		 boolean isempty;
+		 int t;
 		 while(change) {
 			 change=false;
-			 for(int i=0;i<G.size();i++) {
-				 isempty=true;
+			 for(Grammer g:G) {
+				 isempty=true;;
 				 t=0;
-				 while(isempty&&t<G.get(i).getRight().size()) {
+				 int len=g.getRight().size();
+				 while(isempty&&t<len) {
 					 isempty=false;
-					 if(!inVT(G.get(i).getRight().get(t).toString())) {
-						 if(!first.get(G.get(i).getLeft().toString()).contains(G.get(i).getRight().get(t)))
+					 String str=g.getRight().get(t).toString();
+					 if(!inVT(str)) {
+						 if(!first.get(g.getLeft().toString()).contains(str))
 						 {
-							 first.get(G.get(i).getLeft().toString()).addElement(G.get(i).getRight().get(t).toString());
+							 first.get(g.getLeft().toString()).add(str);
 							 change=true;
 						 }
-						 continue;
+						 continue;	
 					 }
-					 for(int j=0;j<first.get(G.get(i).getRight().get(t)).size();j++) {
-						 if(!first.get(G.get(i).getLeft().toString()).contains(G.get(i).getRight().get(t).toString())) {
-							 first.get(G.get(i).getLeft().toString()).addElement(G.get(i).getRight().get(t).toString());
-							 change=true;
+					 for(Object i:first.get(str)) {
+							 if(!first.get(g.getLeft()).contains(i)) {
+								 first.get(g.getLeft()).add(i);
+								 change=true;
+							 }
 						 }
-					 }
-					 if(first.get(G.get(i).getLeft().toString()).contains("ε")) {
+					 
+					 if(first.get(str).contains("ε")) {
 						 isempty=true;
-						 t=t+1;
+						 t++;
 					 }
 				 }
-				 if(t==G.get(i).getRight().size()&&(!first.get(G.get(i).getLeft().toString()).contains("ε"))) {
-					 first.get(G.get(i).getLeft().toString()).addElement("ε");
+				 if((t==g.getRight().size())&&(!first.get(g.getLeft()).contains("ε"))) {
+					 first.get(g.getLeft()).add("ε");
 					 change=true;
 				 }
-				 first.get(G.get(i).getLeft()).removeAll(existV);
 			 }
+			
+			 
 		 }
-		 first.remove("S");
-		
-			 System.out.println(first.keySet());
-			 System.out.println(first.values());
+	//	first.remove("Y");
+		 System.out.println("");
+	for(int i=0;i<existV.size();i++) {
+		System.out.println(existV.get(i)+"的first 集为"+first.get(existV.get(i)));
+	}
 		
 		 return;
 	 }
@@ -172,6 +181,7 @@ public class getTable {
 		 getTable ti=new getTable();
 		 try {
 			ti.get_grammer();
+			ti.initfirst();
 			ti.get_first();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
