@@ -21,6 +21,7 @@ import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 import mode.Grammer;
 import mode.Project;
+import mode.StateTran;
 
 public class getTable {
 	 String V[];
@@ -28,16 +29,14 @@ public class getTable {
 	 Vector<String> existV=new Vector<String>();
 	 Vector<String>  existT=new Vector<String>();
 	 Vector<Grammer> G=new Vector<Grammer>();
+	 Vector<StateTran> statrans=new Vector<StateTran>();
 	 HashMap<String,Vector> first=new HashMap<String,Vector>();
-//	 ArrayList<HashMap<String,String>> Atable=new ArrayList<HashMap<String,String>>();
-//	 ArrayList<HashMap<String,Integer>> Gtable=new ArrayList<HashMap<String,Integer>>();
 	 HashMap<Integer,HashMap<String,String>>Atable=new HashMap<Integer,HashMap<String,String>>();
 	 HashMap<Integer,HashMap<String,Integer>>Gtable=new HashMap<Integer,HashMap<String,Integer>>();
-	 ArrayList<Project> itemsta=new ArrayList<Project>();;
+	 ArrayList<Project> itemsta=new ArrayList<Project>();
+	 HashMap<Integer, ArrayList<Project>> status=new HashMap<Integer,ArrayList<Project>>();
+	 Vector<Integer> statetip=new Vector<Integer>();
 	 HashMap<String,Vector<Integer>>index=new HashMap<String,Vector<Integer>>();
-	 HashMap<Integer,ArrayList<Project>> status1=new HashMap<Integer,ArrayList<Project>>();
-	 HashMap<ArrayList<Project>,Integer> status2=new HashMap<ArrayList<Project>,Integer>();
-	 
 	 public void get_grammer() throws IOException {
 		 int i=0;
 		 Grammer tmp=new Grammer();
@@ -56,7 +55,7 @@ public class getTable {
 				String[] linestr=read.split("");
 				int len=read.length();
 					Grammer gtmp=new Grammer();
-					Vector temp=new Vector();
+					Vector<String> temp=new Vector<String>();
 					if(inVT(linestr[0])) {
 						if(!existV.contains(linestr[0]))
 						existV.add(linestr[0]);
@@ -86,14 +85,14 @@ public class getTable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		 Vector temp=new Vector();
+		 Vector<String> temp=new Vector<String>();
 		 temp.add(G.get(0).getLeft());
 		 //temp.add("¦Å");
 		 tmp.setRight(temp);
 		 G.add(0, tmp);
 		 for(int i1=0;i1<G.size();i1++) {
 			 if(index.get(G.get(i1).getLeft())==null) {
-				 	Vector vtmp=new Vector();
+				 	Vector<Integer> vtmp=new Vector<Integer>();
 					index.put(G.get(i1).getLeft(), vtmp);
 			 }
 			 index.get(G.get(i1).getLeft()).addElement(i1);
@@ -248,7 +247,7 @@ public class getTable {
 							new_successor=pro.getSuccessors();
 						}
 						else {
-							Vector vtmp=new Vector();
+							Vector<String> vtmp=new Vector<String>();
 							for(int k=tmppdot+1;k<G.get(tmppnum).getRight().size();k++) {
 								vtmp.add(G.get(tmppnum).getRight().get(k).toString());
 							}
@@ -285,7 +284,6 @@ public class getTable {
 			      }  
 					}
 					}
-			System.out.println(p.size());
 			return p;
 	 }
 	 public int isContainPro(ArrayList<Project> s,Project tmp) {
@@ -296,7 +294,6 @@ public class getTable {
 		 return -1;
 		 
 	 }
-
 	 boolean judge_repeat(ArrayList<Project> statuss1,ArrayList<Project> statuss2) {
 		if(statuss1.size()!=statuss2.size())
 			return false;
@@ -316,111 +313,44 @@ public class getTable {
 		ArrayList<Project> tmp_status=new ArrayList<Project>();
 		tmp_status.add(ptmp);
 		tmp_status=get_clousre(tmp_status);
-		ArrayList<ArrayList<Project>> tmpsta=new ArrayList<ArrayList<Project>>();
-		tmpsta.add(tmp_status);
-		status1.put(t, tmp_status);
-		status2.put(tmp_status, t);
-		boolean change=true;
-		HashSet<Integer> record=new HashSet<Integer>();
-		ArrayList<ArrayList<Project>> sstmp=new ArrayList<ArrayList<Project>>();
-		HashSet<String> conflict=new HashSet<String>();
-		
-
-		while(change) {
-			change=false;
-			sstmp=tmpsta;
-			ListIterator<ArrayList<Project>> sta = sstmp.listIterator(); 
-			while(sta.hasNext()) {
-				 int stafirst=status2.get(sta.next());
-				System.out.println(stafirst);
-				if(record.contains(stafirst))
-					continue;
-				HashSet<String> record_status=new HashSet<String>();
-				ListIterator<Project> prossecond = sstmp.get(stafirst).listIterator();  
-				while(prossecond.hasNext()) {
-					Project pros=prossecond.next();
-					int prosnum=pros.getPro_num();
-					int prosdot=pros.getDot_positon();
-					ArrayList<String> prossuc=pros.getSuccessors();
-					if(G.get(prosnum).getRight().get(0).equals("¦Å") ||prosdot==G.get(prosnum).getRight().size()){
-						for(String sucess:prossuc) {
-						 if(!Atable.get(stafirst).containsKey(sucess))
-							 Atable.get(stafirst).put(sucess, "r"+prosnum);						
-						 }
-						continue;
-					}
-					String trans=G.get(prosnum).getRight().get(prosdot).toString();
-					if(record_status.contains(trans))
-						continue;
-					record_status.add(trans);
-					tmp_status=new ArrayList<Project>();
-					//tmp_status.clear();
-					ptmp.setPro_num(prosnum);
-					ptmp.setDot_positon(prosdot+1);
-					ptmp.setSuccessors(prossuc);
-					tmp_status.add(ptmp);
-					ListIterator<Project> protmp = sstmp.get(stafirst).listIterator(); 
-					while(protmp.hasNext()) {
-						Project protmptemp=protmp.next();
-						int protnum=protmptemp.getPro_num();
-						int protdot=protmptemp.getDot_positon();
-						ArrayList<String> protsuc=protmptemp.getSuccessors();
-						if(protdot<G.get(protnum).getRight().size())
-						if(G.get(protnum).getRight().get(protdot).equals(trans)&&!(protmptemp==pros))
-						{
-							ptmp.setPro_num(protnum);
-							ptmp.setDot_positon(protdot);
-							ptmp.setSuccessors(protsuc);
-							tmp_status.add(ptmp);
-						}
-					}
-					tmp_status=get_clousre(tmp_status);
-					boolean flag=true;
-					ListIterator<ArrayList<Project>> s = sstmp.listIterator();
-					while(s.hasNext()) {
-						System.out.println("pass");
-						int sfirst=status2.get(s.next());
-						System.out.println("pass11111");
-						ArrayList<Project> sSecond=status1.get(sfirst);
-						if(judge_repeat(sSecond,tmp_status)) {
-								if(inVT(trans))
-								{
-									if(Gtable.get(stafirst)==null) {
-										HashMap<String,Integer> gtmp=new HashMap<String,Integer>();
-										System.out.println("Gtable add element failed");
-										Gtable.put(stafirst, gtmp);
-									}
-									System.out.println("Gtable add element failed");
-									Gtable.get(stafirst).put(trans, stafirst);
-									}
-								else {
-									if(Atable.get(stafirst)==null) {
-										HashMap<String,String> atmp=new HashMap<String,String>();
-										System.out.println("Gtable add element failed");
-										Atable.put(stafirst, atmp);
-									}
-									System.out.println("Atable add element failed");
-									Atable.get(stafirst).put(trans, "s"+stafirst);
-								}
-								flag=false;
-								break;	
-						}
-					}
-					sta.add(tmp_status);
-					status1.put(t, tmp_status);
-					status2.put(tmp_status, t);
-				}
-				System.out.println("dddddddddddddddddd");
+		status.put(t, tmp_status);
+		statetip.add(0);
+		//tmp_status=new ArrayList<Project>();
+		for(Project pro:tmp_status) {
+			int pronum=pro.getPro_num();
+			int prodot=pro.getDot_positon();
+			ArrayList<String> prosuc=pro.getSuccessors();
+			if(prodot==G.get(pronum).getRight().size()||G.get(pronum).getRight().get(0)=="¦Å")
+			{
+				
 			}
-			
-				}
-		System.out.println(status1.size());
-		System.out.println(status2.size());
-		System.out.println(sstmp.size());
+			{
+				t=t+1;
+				String trans=G.get(pronum).getRight().get(prodot).toString();
+				Project tmpro=new Project();
+				tmpro.setDot_positon(prodot+1);
+				tmpro.setPro_num(pronum);
+				tmpro.setSuccessors(prosuc);
+				tmp_status=new ArrayList<Project> ();
+				tmp_status.add(tmpro);
+				status.put(t, tmp_status);
+				GO(t-1,t,trans);
+				
+			}
+		}
+		
 	}
-	 public ArrayList delrepeat( ArrayList  list) {
-		 ArrayList  temparr= new ArrayList();
-		 HashSet set=new HashSet(list);
+	public void GO(int i,int j,String str) {
+		 StateTran tmpstatran=new StateTran();
+		 tmpstatran.setConstring(str);
+		 tmpstatran.setEndstatus(j);
+		 tmpstatran.setStartstatus(i);
+		 statrans.add(tmpstatran);
+		 
+	}
+	 public ArrayList<String> delrepeat( ArrayList<String>  list) {
+		 ArrayList<String>  temparr= new ArrayList<String>();
+		 HashSet<String> set=new HashSet<String>(list);
 		 temparr.addAll(set);
 		 return temparr;
 	 }
