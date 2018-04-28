@@ -10,9 +10,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
+import com.sun.javafx.collections.MappingChange.Map;
 import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 import mode.Grammer;
@@ -25,11 +29,15 @@ public class getTable {
 	 Vector<String>  existT=new Vector<String>();
 	 Vector<Grammer> G=new Vector<Grammer>();
 	 HashMap<String,Vector> first=new HashMap<String,Vector>();
-	 ArrayList<HashMap<String,String>> Atable=new ArrayList<HashMap<String,String>>();
-	 ArrayList<HashMap<String,Integer>> Gtable=new ArrayList<HashMap<String,Integer>>();
-	 ArrayList<Project> itemsta=new ArrayList<Project>();
+//	 ArrayList<HashMap<String,String>> Atable=new ArrayList<HashMap<String,String>>();
+//	 ArrayList<HashMap<String,Integer>> Gtable=new ArrayList<HashMap<String,Integer>>();
+	 HashMap<Integer,HashMap<String,String>>Atable=new HashMap<Integer,HashMap<String,String>>();
+	 HashMap<Integer,HashMap<String,Integer>>Gtable=new HashMap<Integer,HashMap<String,Integer>>();
+	 ArrayList<Project> itemsta=new ArrayList<Project>();;
 	 HashMap<String,Vector<Integer>>index=new HashMap<String,Vector<Integer>>();
-	 ArrayList<HashMap<Integer,ArrayList>> status=new ArrayList<HashMap<Integer,ArrayList>>();
+	 HashMap<Integer,ArrayList<Project>> status1=new HashMap<Integer,ArrayList<Project>>();
+	 HashMap<ArrayList<Project>,Integer> status2=new HashMap<ArrayList<Project>,Integer>();
+	 
 	 public void get_grammer() throws IOException {
 		 int i=0;
 		 Grammer tmp=new Grammer();
@@ -218,101 +226,66 @@ public class getTable {
 	 }
 	 public ArrayList<Project> get_clousre(ArrayList<Project> p){
 			boolean change=true;
-			ArrayList<Project> pptmp=p;
-			itemsta=p;
+			ArrayList<Project> pptmp=new ArrayList<Project>();
 			while(change) {
 				change=false;
-				pptmp=itemsta;
-				System.out.println(itemsta);
-				for(Project pro:pptmp) {
-					System.out.println(pptmp.size());
-					int tmppnum=pro.getPro_num();
-					int tmppdot=pro.getDot_positon();
-					System.out.println(G.get(tmppnum).getRight());
-					
-					ArrayList<String> tmppsuc=pro.getSuccessors();
-					if(tmppdot==G.get(tmppnum).getRight().size())
-						continue;
-					String V=G.get(tmppnum).getRight().get(pro.getDot_positon()).toString();
-					System.out.println(V);
-					if(!inVT(V))
-						continue;
-					ArrayList<String> new_successor=new ArrayList<String> ();
-					if(pro.getDot_positon()==G.get(tmppnum).getRight().size()-1)
-					{
+				pptmp=p;
+				ListIterator<Project> pros = p.listIterator();  
+		        while(pros.hasNext()) {  
+		        		Project pro= pros.next();
+						int tmppnum=pro.getPro_num();
+						int tmppdot=pro.getDot_positon();
+						ArrayList<String> tmppsuc=pro.getSuccessors();
+						if(tmppdot==G.get(tmppnum).getRight().size())
+							continue;
+						String V=G.get(tmppnum).getRight().get(pro.getDot_positon()).toString();
+						if(!inVT(V))
+							continue;
+						ArrayList<String> new_successor=new ArrayList<String> ();
+						if(pro.getDot_positon()==G.get(tmppnum).getRight().size()-1)
+						{
 
-						new_successor=pro.getSuccessors();
-						System.out.println(new_successor);
-					}
-					else {
-						System.out.println("ddddddddddddd");
-						Vector vtmp=new Vector();
-						for(int k=tmppdot+1;k<G.get(tmppnum).getRight().size();k++) {
-							vtmp.add(G.get(tmppnum).getRight().get(k).toString());
+							new_successor=pro.getSuccessors();
 						}
-						System.out.println("产生式G："+G.get(tmppnum)+"的小圆点后面的字符为："+vtmp);
-						new_successor=judge_first(vtmp,new_successor);
-						System.out.println("233-----new_successor:"+new_successor);
-						if(new_successor.contains("ε")) {
-							new_successor.addAll(tmppsuc);
-							new_successor=delrepeat(new_successor);
-							new_successor.remove("ε");
+						else {
+							Vector vtmp=new Vector();
+							for(int k=tmppdot+1;k<G.get(tmppnum).getRight().size();k++) {
+								vtmp.add(G.get(tmppnum).getRight().get(k).toString());
+							}
+							new_successor=judge_first(vtmp,new_successor);
+							if(new_successor.contains("ε")) {
+								new_successor.addAll(tmppsuc);
+								new_successor=delrepeat(new_successor);
+								new_successor.remove("ε");
+							}
+							
 						}
-						
+						Iterator<Integer> it = index.get(V).listIterator(); 
+				      while(it.hasNext()) {  
+				    	  Project ptmp=new Project();
+				    	  int tempit=it.next();
+							ptmp.setPro_num(tempit);
+							ptmp.setDot_positon(0);
+							ptmp.setSuccessors(new_successor);
+							int point=isContainPro(p,ptmp);
+							if(point==-1) {
+								pros.add(ptmp);
+								
+								change=true;	
+							}else {
+								int temporigi=p.get(point).getSuccessors().size();
+								ArrayList<String> tmp=ptmp.getSuccessors();
+								tmp.addAll(p.get(point).getSuccessors());
+								tmp=delrepeat(tmp);
+								ptmp.setSuccessors(tmp);
+								p.set(point, ptmp);
+								if(temporigi<ptmp.getSuccessors().size())
+									change=true;
+							}
+			      }  
 					}
-					System.out.println("------251");
-					Iterator<Integer> it = index.get(V).iterator();  
-			      while(it.hasNext()) {  
-			    	  Project ptmp=new Project();
-						ptmp.setPro_num(it.next());
-						ptmp.setDot_positon(0);
-						ptmp.setSuccessors(new_successor);
-						int point=isContainPro(itemsta,ptmp);
-						System.out.println(point+"=============");
-						if(point==-1) {
-							System.out.println("-----------259");
-							itemsta.add(ptmp);
-							change=true;	
-						}else {
-							int temporigi=itemsta.get(point).getSuccessors().size();
-							ArrayList<String> tmp=ptmp.getSuccessors();
-							tmp.addAll(itemsta.get(point).getSuccessors());
-							tmp=delrepeat(tmp);
-							ptmp.setSuccessors(tmp);
-							itemsta.set(point, ptmp);
-							if(temporigi<ptmp.getSuccessors().size())
-								change=true;
-						}
-						System.out.println("以该终结符产生的产生式");
-		      }  
-//					for(int i:index.get(V)) {
-//						Project ptmp=new Project();
-//						ptmp.setPro_num(i);
-//						ptmp.setDot_positon(0);
-//						ptmp.setSuccessors(new_successor);
-//						int point=isContainPro(itemsta,ptmp);
-//						System.out.println(point+"=============");
-//						if(point==-1) {
-//							System.out.println("-----------259");
-//							itemsta.add(ptmp);
-//							change=true;	
-//						}else {
-//							int temporigi=itemsta.get(point).getSuccessors().size();
-//							ArrayList<String> tmp=ptmp.getSuccessors();
-//							tmp.addAll(itemsta.get(point).getSuccessors());
-//							tmp=delrepeat(tmp);
-//							ptmp.setSuccessors(tmp);
-//							itemsta.set(point, ptmp);
-//							if(temporigi<ptmp.getSuccessors().size())
-//								change=true;
-//						}
-//						System.out.println("以该终结符产生的产生式");
-//					}
-					System.out.println("已经查找当前产生式后面元素为右部的完所有的产生式");
-				}
-				System.out.println("已经查找当前状态集合I0的所有产生式");
 					}
-		
+			System.out.println(p.size());
 			return p;
 	 }
 	 public int isContainPro(ArrayList<Project> s,Project tmp) {
@@ -323,12 +296,12 @@ public class getTable {
 		 return -1;
 		 
 	 }
-	 
-	 boolean judge_repeat(ArrayList<Project> status1,ArrayList<Project> status2) {
-		if(status1.size()!=status2.size())
+
+	 boolean judge_repeat(ArrayList<Project> statuss1,ArrayList<Project> statuss2) {
+		if(statuss1.size()!=statuss2.size())
 			return false;
-		for(int i=0;i<status1.size();i++) {
-			if(!status2.contains(status.get(i)))
+		for(int i=0;i<statuss1.size();i++) {
+			if(!statuss2.contains(statuss1.get(i)))
 				return false;
 		}
 		return true;
@@ -337,12 +310,113 @@ public class getTable {
 		int t=0;
 		Project ptmp=new Project();
 		ptmp.setDot_positon(0);
-		ptmp.setPro_num(4);
+		ptmp.setPro_num(0);
 		ArrayList<String> suc=new ArrayList<String> ();
 		ptmp.setSuccessors(suc);
 		ArrayList<Project> tmp_status=new ArrayList<Project>();
 		tmp_status.add(ptmp);
-		get_clousre(tmp_status);
+		tmp_status=get_clousre(tmp_status);
+		ArrayList<ArrayList<Project>> tmpsta=new ArrayList<ArrayList<Project>>();
+		tmpsta.add(tmp_status);
+		status1.put(t, tmp_status);
+		status2.put(tmp_status, t);
+		boolean change=true;
+		HashSet<Integer> record=new HashSet<Integer>();
+		ArrayList<ArrayList<Project>> sstmp=new ArrayList<ArrayList<Project>>();
+		HashSet<String> conflict=new HashSet<String>();
+		
+
+		while(change) {
+			change=false;
+			sstmp=tmpsta;
+			ListIterator<ArrayList<Project>> sta = sstmp.listIterator(); 
+			while(sta.hasNext()) {
+				 int stafirst=status2.get(sta.next());
+				System.out.println(stafirst);
+				if(record.contains(stafirst))
+					continue;
+				HashSet<String> record_status=new HashSet<String>();
+				ListIterator<Project> prossecond = sstmp.get(stafirst).listIterator();  
+				while(prossecond.hasNext()) {
+					Project pros=prossecond.next();
+					int prosnum=pros.getPro_num();
+					int prosdot=pros.getDot_positon();
+					ArrayList<String> prossuc=pros.getSuccessors();
+					if(G.get(prosnum).getRight().get(0).equals("ε") ||prosdot==G.get(prosnum).getRight().size()){
+						for(String sucess:prossuc) {
+						 if(!Atable.get(stafirst).containsKey(sucess))
+							 Atable.get(stafirst).put(sucess, "r"+prosnum);						
+						 }
+						continue;
+					}
+					String trans=G.get(prosnum).getRight().get(prosdot).toString();
+					if(record_status.contains(trans))
+						continue;
+					record_status.add(trans);
+					tmp_status=new ArrayList<Project>();
+					//tmp_status.clear();
+					ptmp.setPro_num(prosnum);
+					ptmp.setDot_positon(prosdot+1);
+					ptmp.setSuccessors(prossuc);
+					tmp_status.add(ptmp);
+					ListIterator<Project> protmp = sstmp.get(stafirst).listIterator(); 
+					while(protmp.hasNext()) {
+						Project protmptemp=protmp.next();
+						int protnum=protmptemp.getPro_num();
+						int protdot=protmptemp.getDot_positon();
+						ArrayList<String> protsuc=protmptemp.getSuccessors();
+						if(protdot<G.get(protnum).getRight().size())
+						if(G.get(protnum).getRight().get(protdot).equals(trans)&&!(protmptemp==pros))
+						{
+							ptmp.setPro_num(protnum);
+							ptmp.setDot_positon(protdot);
+							ptmp.setSuccessors(protsuc);
+							tmp_status.add(ptmp);
+						}
+					}
+					tmp_status=get_clousre(tmp_status);
+					boolean flag=true;
+					ListIterator<ArrayList<Project>> s = sstmp.listIterator();
+					while(s.hasNext()) {
+						System.out.println("pass");
+						int sfirst=status2.get(s.next());
+						System.out.println("pass11111");
+						ArrayList<Project> sSecond=status1.get(sfirst);
+						if(judge_repeat(sSecond,tmp_status)) {
+								if(inVT(trans))
+								{
+									if(Gtable.get(stafirst)==null) {
+										HashMap<String,Integer> gtmp=new HashMap<String,Integer>();
+										System.out.println("Gtable add element failed");
+										Gtable.put(stafirst, gtmp);
+									}
+									System.out.println("Gtable add element failed");
+									Gtable.get(stafirst).put(trans, stafirst);
+									}
+								else {
+									if(Atable.get(stafirst)==null) {
+										HashMap<String,String> atmp=new HashMap<String,String>();
+										System.out.println("Gtable add element failed");
+										Atable.put(stafirst, atmp);
+									}
+									System.out.println("Atable add element failed");
+									Atable.get(stafirst).put(trans, "s"+stafirst);
+								}
+								flag=false;
+								break;	
+						}
+					}
+					sta.add(tmp_status);
+					status1.put(t, tmp_status);
+					status2.put(tmp_status, t);
+				}
+				System.out.println("dddddddddddddddddd");
+			}
+			
+				}
+		System.out.println(status1.size());
+		System.out.println(status2.size());
+		System.out.println(sstmp.size());
 	}
 	 public ArrayList delrepeat( ArrayList  list) {
 		 ArrayList  temparr= new ArrayList();
@@ -351,6 +425,7 @@ public class getTable {
 		 return temparr;
 	 }
 public static void main(String[] args) { 
+
 		 getTable ti=new getTable();
 		 try {
 			ti.get_grammer();
@@ -361,6 +436,9 @@ public static void main(String[] args) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.exit(0);
+
+		 
 	 }
 	 
 }
