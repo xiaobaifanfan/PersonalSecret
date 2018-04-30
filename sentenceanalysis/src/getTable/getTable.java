@@ -197,7 +197,7 @@ public class getTable {
 		
 		 return;
 	 }
-	 public ArrayList<String> judge_first(Vector<String> s,ArrayList<String> result) {
+	 public HashSet<String> judge_first(Vector<String> s,HashSet<String> result) {
 		 int count=0;
 		 for(String i:s) {
 			 if((!inVT(i))&&(!result.contains(i))) {
@@ -206,18 +206,19 @@ public class getTable {
 			 }
 			 if(!first.get(i).contains("¦Å")) {
 				 result.addAll(first.get(i));
-				 result=delrepeat(result);
+				 
 				 break;
 			 }
 			 result.addAll(first.get(i));
-			 result=delrepeat(result);
 			 result.remove("¦Å");
 			 count++;
 		 }
 		 if(count==s.size())
 			 result.add("¦Å");
+
 		 return result;
 	 }
+	 
 	 public ArrayList<Project> get_clousre(ArrayList<Project> p){
 			boolean change=true;
 			ArrayList<Project> pptmp=new ArrayList<Project>();
@@ -229,16 +230,19 @@ public class getTable {
 		        		Project pro= pros.next();
 						int tmppnum=pro.getPro_num();
 						int tmppdot=pro.getDot_positon();
-						ArrayList<String> tmppsuc=pro.getSuccessors();
+						HashSet<String> tmppsuc=new HashSet<String>();
+						tmppsuc=pro.getSuccessors();
 						if(tmppdot==G.get(tmppnum).getRight().size())
 							continue;
 						String V=G.get(tmppnum).getRight().get(pro.getDot_positon()).toString();
-						if(!inVT(V))
+						if(!inVT(V)) {
 							continue;
-						ArrayList<String> new_successor=new ArrayList<String> ();
+						}
+							
+						HashSet<String> new_successor=new HashSet<String> ();
+						new_successor.add("#");
 						if(pro.getDot_positon()==G.get(tmppnum).getRight().size()-1)
 						{
-
 							new_successor=pro.getSuccessors();
 						}
 						else {
@@ -249,38 +253,45 @@ public class getTable {
 							new_successor=judge_first(vtmp,new_successor);
 							if(new_successor.contains("¦Å")) {
 								new_successor.addAll(tmppsuc);
-								new_successor=delrepeat(new_successor);
 								new_successor.remove("¦Å");
 							}
-							
 						}
+						
 						Iterator<Integer> it = index.get(V).listIterator(); 
-				      while(it.hasNext()) {  
+				      while(it.hasNext()) { 
 				    	  Project ptmp=new Project();
+				    	  HashSet<String> new_suc=new HashSet<String>();
+				    	  new_suc=(HashSet<String>) new_successor.clone();
+				    	  
 				    	  int tempit=it.next();
 							ptmp.setPro_num(tempit);
 							ptmp.setDot_positon(0);
-							ptmp.setSuccessors(new_successor);
+							ptmp.setSuccessors(new_suc);
 							int point=isContainPro(p,ptmp);
 							if(point==-1) {
 								pros.add(ptmp);
-								
 								change=true;	
 							}else {
 								int temporigi=p.get(point).getSuccessors().size();
-								ArrayList<String> tmp=ptmp.getSuccessors();
+								HashSet<String> tmp=new HashSet<String>();
+								tmp.add("#");
+								tmp=ptmp.getSuccessors();
 								tmp.addAll(p.get(point).getSuccessors());
-								tmp=delrepeat(tmp);
 								ptmp.setSuccessors(tmp);
 								p.set(point, ptmp);
 								if(temporigi<ptmp.getSuccessors().size())
 									change=true;
 							}
 			      }  
+				     
 					}
+		        
 					}
+
+			System.out.println(p.size());
 			return p;
 	 }
+	 
 	 public int isContainPro(ArrayList<Project> s,Project tmp) {
 		 for(int i=0;i<s.size();i++) {
 			 if(s.get(i).getPro_num()==tmp.getPro_num()&&s.get(i).getDot_positon()==tmp.getDot_positon())
@@ -301,7 +312,8 @@ public class getTable {
 		}
 		
 	}
-	if(record.size()==statuss2.size())
+		
+	if(record.size()==statuss2.size()&&statuss2.size()==statuss1.size())
 		return true;
 	return false;
 		
@@ -312,14 +324,14 @@ public class getTable {
 		HashSet<Integer> record=new HashSet<Integer>();
 		ptmp.setDot_positon(0);
 		ptmp.setPro_num(0);
-		ArrayList<String> suc=new ArrayList<String> ();
+		HashSet<String> suc=new HashSet<String> ();
+		suc.add("#");
 		ptmp.setSuccessors(suc);
 		ArrayList<Project> tmp_status=new ArrayList<Project>();
 		
 		tmp_status.add(ptmp);
 		tmp_status=get_clousre(tmp_status);
 		status.put(t, tmp_status);
-		int tmppoint=t;
 		boolean change=true;
 		
 		while(change) {
@@ -336,7 +348,7 @@ public class getTable {
 					Project pro=tmp_status.get(i);
 					int pronum=pro.getPro_num();
 					int prodot=pro.getDot_positon();
-					ArrayList<String> prosuc=pro.getSuccessors();
+					HashSet<String> prosuc=pro.getSuccessors();
 					int lenGsize=G.get(pronum).getRight().size();
 					if(lenGsize==prodot||G.get(pronum).getRight().get(0).equals("¦Å"))
 						continue;
@@ -365,6 +377,7 @@ public class getTable {
 					for(int s:sstmp.keySet())
 					{
 						
+						//if(sstmp.get(s).containsAll(ttmp))
 						if(judge_repeat(sstmp.get(s),ttmp))
 						{
 							GO(sta,s,trans);
@@ -389,10 +402,7 @@ public class getTable {
 		System.out.println(statrans.size());
 		
 	}
-	public Project trans(Project e) {
-		e.setDot_positon(e.getDot_positon()+1);
-		return e;
-	}
+	
 	public void GO(int i,int j,String str) {
 		 StateTran tmpstatran=new StateTran();
 		 tmpstatran.setConstring(str);
@@ -401,19 +411,55 @@ public class getTable {
 		 statrans.add(tmpstatran);
 		 
 	}
-	public ArrayList<String> delrepeat( ArrayList<String>  list) {
-		 ArrayList<String>  temparr= new ArrayList<String>();
-		 HashSet<String> set=new HashSet<String>(list);
-		 temparr.addAll(set);
-		 return temparr;
-	 }
+//	public ArrayList<String> delrepeat( ArrayList<String>  list) {
+//		 ArrayList<String>  temparr= new ArrayList<String>();
+//		 HashSet<String> set=new HashSet<String>(list);
+//		 temparr.addAll(set);
+//		 return temparr;
+//	 }
 	public void generateLR() {
 		for(int i=0;i<statrans.size();i++) {
 			System.out.println(statrans.get(i).getStartstatus()+"-----------"+statrans.get(i).getConstring()+"------------"+statrans.get(i).getEndstatus());
 		}
-		
-		
+		for(StateTran staTra:statrans) {
+			String str=staTra.getConstring().toString();
+			if(staTra.getStartstatus()==1)
+			{
+				HashMap<String,String> tmp=new HashMap<String,String>();
+				String strtemp="acc";
+				tmp.put(str,strtemp);
+				Atable.put(staTra.getStartstatus(), tmp);
+				continue;
+			}
+			if(inVT(str)) {
+				HashMap<String,Integer> tmp=new HashMap<String,Integer>();
+				tmp.put(str,staTra.getEndstatus());
+				Gtable.put(staTra.getStartstatus(), tmp);
+			}else {
+				HashMap<String,String> tmp=new HashMap<String,String>();
+				String strtemp="S"+staTra.getEndstatus();
+				tmp.put(str,strtemp);
+				Atable.put(staTra.getStartstatus(), tmp);
+			}
+		}
+		for(int sta:status.keySet()) {
+			for(Project pro:status.get(sta)) {
+				if(pro.getDot_positon()==G.get(pro.getPro_num()).getRight().size()) {
+					HashMap<String,String> tmp=new HashMap<String,String>();
+					String str=pro.getSuccessors().toString();
+					tmp.put(str,"r"+pro.getPro_num());
+					Atable.put(sta, tmp);
+				}
+			}
+		}
+		int len=existT.size();
 	
+			for(int i=0;i<status.size();i++) {
+				System.out.println(Atable.get(i));
+				
+			}
+		
+		
 	}
 public static void main(String[] args) { 
 
@@ -423,7 +469,7 @@ public static void main(String[] args) {
 			ti.initfirst();
 			ti.get_first();
 			ti.get_stauts();
-			ti.generateLR();
+			//ti.generateLR();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
