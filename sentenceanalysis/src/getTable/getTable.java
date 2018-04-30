@@ -287,8 +287,7 @@ public class getTable {
 					}
 		        
 					}
-
-			System.out.println(p.size());
+			p=delrepeat(p);
 			return p;
 	 }
 	 
@@ -304,7 +303,7 @@ public class getTable {
 		 ArrayList<Integer> record=new ArrayList<Integer>();
 	for(int j=0;j<statuss2.size();j++) {
 		for(int i=0;i<statuss1.size();i++) {
-			if(statuss2.get(j).getPro_num()==statuss1.get(i).getPro_num()&&statuss2.get(j).getDot_positon()==statuss1.get(i).getDot_positon())
+			if(hashsetequal(statuss1.get(i).getSuccessors(),statuss2.get(j).getSuccessors())&&statuss2.get(j).getPro_num()==statuss1.get(i).getPro_num()&&statuss2.get(j).getDot_positon()==statuss1.get(i).getDot_positon())
 				{
 				record.add(j);
 				break;
@@ -312,13 +311,19 @@ public class getTable {
 		}
 		
 	}
-		
-	if(record.size()==statuss2.size()&&statuss2.size()==statuss1.size())
+	if(record.size()==statuss2.size()&&statuss2.size()<=statuss1.size())
 		return true;
 	return false;
 		
 	}
-	public void get_stauts() {	
+	 public boolean hashsetequal(HashSet<String> set1,HashSet<String> set2 ) {
+		 ArrayList<String> slist1=new ArrayList<String>(set1);
+		 ArrayList<String> slist2=new ArrayList<String>(set2);
+		 if(slist1.containsAll(slist2)&&slist1.size()==slist2.size())
+			 return true;
+		 return false;
+	 }
+ 	public void get_stauts() {	
 		int t=0;
 		Project ptmp=new Project();
 		HashSet<Integer> record=new HashSet<Integer>();
@@ -387,6 +392,7 @@ public class getTable {
 					}
 					if(!flag)
 						continue;
+					
 					status.put(++t, ttmp);
 					GO(sta,t,trans);
 					change=true;
@@ -400,6 +406,12 @@ public class getTable {
 		
 		System.out.println(status.size());
 		System.out.println(statrans.size());
+		for(int sta:status.keySet()) {
+			System.out.println("states:"+sta+"如下：");
+			for(Project pro:status.get(sta)) {
+				System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
+			}
+		}
 		
 	}
 	
@@ -411,12 +423,21 @@ public class getTable {
 		 statrans.add(tmpstatran);
 		 
 	}
-//	public ArrayList<String> delrepeat( ArrayList<String>  list) {
-//		 ArrayList<String>  temparr= new ArrayList<String>();
-//		 HashSet<String> set=new HashSet<String>(list);
-//		 temparr.addAll(set);
-//		 return temparr;
-//	 }
+	public ArrayList<Project> delrepeat( ArrayList<Project>  ttmp) {
+		Vector<String> record=new Vector<String>();
+		ArrayList<Project> temp=new ArrayList<Project> ();
+		for(Project pro:ttmp) {
+			String str=String.valueOf(pro.getPro_num())+String.valueOf(pro.getDot_positon());
+			if(!record.contains(str))
+			{
+				temp.add(pro);
+				record.add(str);
+				
+			}
+				
+		}
+		 return temp;
+	 }
 	public void generateLR() {
 		for(int i=0;i<statrans.size();i++) {
 			System.out.println(statrans.get(i).getStartstatus()+"-----------"+statrans.get(i).getConstring()+"------------"+statrans.get(i).getEndstatus());
@@ -453,11 +474,17 @@ public class getTable {
 			}
 		}
 		int len=existT.size();
+		existT.add("#");
 	
 			for(int i=0;i<status.size();i++) {
+				for(int j=0;j<existT.size();j++){
+					System.out.print(Atable.get(i).get(existT.get(j))+" ");
+					
+				}
 				System.out.println(Atable.get(i));
-				
+				System.out.println("");
 			}
+			
 		
 		
 	}
@@ -469,7 +496,7 @@ public static void main(String[] args) {
 			ti.initfirst();
 			ti.get_first();
 			ti.get_stauts();
-			//ti.generateLR();
+			ti.generateLR();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
