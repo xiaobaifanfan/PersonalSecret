@@ -12,7 +12,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Map.Entry;
+import java.util.Scanner;
 import java.util.Set;
+import java.util.Stack;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -293,7 +295,6 @@ public class getTable {
 			p=delrepeat(p);
 			return p;
 	 }
-	 
 	 public int isContainPro(ArrayList<Project> s,Project tmp) {
 		 for(int i=0;i<s.size();i++) {
 			 if(s.get(i).getPro_num()==tmp.getPro_num()&&s.get(i).getDot_positon()==tmp.getDot_positon())
@@ -370,9 +371,7 @@ public class getTable {
 					ArrayList<Project> ttmp=new ArrayList<Project> ();
 					ArrayList<Project> ttmpstore=new ArrayList<Project> ();
 					ttmp.add(tmpro);
-					System.out.println(t);
 					for(Project protmp:sstmp.get(sta)) {
-						System.out.println(trans);
 						if(protmp.getDot_positon()<G.get(protmp.getPro_num()).getRight().size()&&G.get(protmp.getPro_num()).getRight().get(protmp.getDot_positon()).equals(trans)&&!(protmp==pro)) 
 							{
 								tmpro=new Project();
@@ -387,7 +386,6 @@ public class getTable {
 					}
 					
 					ttmp=get_clousre(ttmp);
-					System.out.println(ttmpstore.size());
 					boolean flag=true;
 					for(int s:sstmp.keySet())
 					{
@@ -423,7 +421,7 @@ public class getTable {
 		}
 		
 	}
-	
+
 	public void GO(int i,int j,String str) {
 		 StateTran tmpstatran=new StateTran();
 		 tmpstatran.setConstring(str);
@@ -538,6 +536,79 @@ public class getTable {
 		}
 		
 	}
+	public void stack_parser() {
+		Stack<String> wstack=new Stack<String>();
+		Scanner in=new Scanner(System.in);
+		Stack<String> parser1=new Stack<String>();
+		Stack<Integer> parser2=new Stack<Integer>();
+		System.out.println("请输入你要分析的语句：");
+		String sentence=in.next();
+		System.out.println(sentence);
+		String[] tempw=sentence.split("");
+		 for(int i=tempw.length-1;i>-1;i--) {
+			 wstack.push(tempw[i]);
+		 }
+		parser1.push("#");
+		parser2.push(0);
+		prints(parser2,parser1);
+		while(parser1.size()>0) {
+			String strtoken=null;
+			if(wstack.peek().equals("#")) 
+				strtoken="#";
+			else
+				strtoken=wstack.pop();
+			
+			int  curstate=parser2.peek();
+			String lrinfo=table[curstate][staconvect.get(strtoken)];
+			if(lrinfo.contains("S")) {
+				int getstate=Integer.parseInt(lrinfo.replaceAll("[^(0-9)]", ""));
+				System.out.print("--- w:"+strtoken+"    action["+curstate+"]["+strtoken+"]=" +lrinfo+" 移进状态"+getstate+"并输入符号"+strtoken);
+				parser1.push(strtoken);	
+				parser2.push(getstate);
+				}
+			if(lrinfo.contains("r")) {
+				System.out.print("--- w:"+strtoken+"    action["+curstate+"]["+strtoken+"]=" +lrinfo+"  按照第");
+				int getstate=Integer.parseInt(lrinfo.replaceAll("[^(0-9)]", ""));
+				for(int i=0;i<G.get(getstate).getRight().size();i++) {
+					parser1.pop();
+					parser2.pop();
+				}
+				System.out.print(getstate+"产生式: "+G.get(getstate).getLeft()+"->"+G.get(getstate).getRight()+"归约。");
+				parser1.push(G.get(getstate).getLeft());
+				prints(parser2,parser1);
+				getstate=parser2.peek();
+				int getstate2=Integer.parseInt(table[getstate][staconvect.get(parser1.peek())]);
+				System.out.print("goto["+getstate+"]["+parser1.peek()+"]="+getstate2+" ,将状态"+getstate2+"压入栈中");
+				parser2.push(getstate2);
+				if(!strtoken.equals("#"))
+				wstack.push(strtoken);
+			}
+			
+			if(lrinfo.equals("acc")) {
+				parser1.pop();
+				parser2.pop();
+				prints(parser2,parser1);
+				System.out.println("语法分析完成");
+				return;
+				}
+			
+			prints(parser2,parser1);
+		}
+		
+	}
+	public void prints(Stack sta1,Stack sta2) {
+		Stack sta11=new Stack();
+		Stack sta22=new Stack();
+		sta11=(Stack) sta1.clone();
+		sta22=(Stack) sta2.clone();
+		System.out.println("");
+		while(!sta11.empty()) {
+			System.out.print(sta11.pop()+" ");
+		}
+		while(!sta22.isEmpty()) {
+			System.out.print(sta22.pop()+" ");
+		}
+	}
 	public static void main(String[] args) { 
 
 		 getTable ti=new getTable();
@@ -547,6 +618,7 @@ public class getTable {
 			ti.get_first();
 			ti.get_stauts();
 			ti.generateLR();
+			ti.stack_parser();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
