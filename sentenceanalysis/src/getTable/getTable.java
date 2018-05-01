@@ -26,11 +26,13 @@ public class getTable {
 	 Vector<String> existV=new Vector<String>();
 	 Vector<String>  existT=new Vector<String>();
 	 Vector<Grammer> G=new Vector<Grammer>();
+	 String[][] Atable;
+	 Integer[][] Gtable;
+	 String[][] table;
 	 Vector<StateTran> statrans=new Vector<StateTran>();
 	 HashMap<String,Vector> first=new HashMap<String,Vector>();
-	 HashMap<Integer,HashMap<String,String>>Atable=new HashMap<Integer,HashMap<String,String>>();
-	 HashMap<Integer,HashMap<String,Integer>>Gtable=new HashMap<Integer,HashMap<String,Integer>>();
 	 ConcurrentHashMap<Integer, ArrayList<Project>> status=new ConcurrentHashMap<Integer,ArrayList<Project>>();
+	 ConcurrentHashMap<String,Integer> staconvect=new  ConcurrentHashMap<String,Integer>();
 	 HashMap<String,Vector<Integer>>index=new HashMap<String,Vector<Integer>>();
 	 public void get_grammer() throws IOException {
 		 int i=0;
@@ -232,8 +234,10 @@ public class getTable {
 						int tmppdot=pro.getDot_positon();
 						HashSet<String> tmppsuc=new HashSet<String>();
 						tmppsuc=pro.getSuccessors();
-						if(tmppdot==G.get(tmppnum).getRight().size())
+						if(tmppdot==G.get(tmppnum).getRight().size()) {
 							continue;
+						}
+							
 						String V=G.get(tmppnum).getRight().get(pro.getDot_positon()).toString();
 						if(!inVT(V)) {
 							continue;
@@ -256,7 +260,6 @@ public class getTable {
 								new_successor.remove("¦Å");
 							}
 						}
-						
 						Iterator<Integer> it = index.get(V).listIterator(); 
 				      while(it.hasNext()) { 
 				    	  Project ptmp=new Project();
@@ -326,22 +329,21 @@ public class getTable {
  	public void get_stauts() {	
 		int t=0;
 		Project ptmp=new Project();
-		HashSet<Integer> record=new HashSet<Integer>();
 		ptmp.setDot_positon(0);
 		ptmp.setPro_num(0);
 		HashSet<String> suc=new HashSet<String> ();
 		suc.add("#");
 		ptmp.setSuccessors(suc);
 		ArrayList<Project> tmp_status=new ArrayList<Project>();
-		
 		tmp_status.add(ptmp);
 		tmp_status=get_clousre(tmp_status);
 		status.put(t, tmp_status);
 		boolean change=true;
-		
+		HashSet<Integer> record=new HashSet<Integer>();
+		ConcurrentHashMap<Integer, ArrayList<Project>> sstmp=new ConcurrentHashMap<Integer, ArrayList<Project>>();
 		while(change) {
 			change=false;
-			ConcurrentHashMap<Integer, ArrayList<Project>> sstmp=status;
+			 sstmp=status;
 			for(int sta:sstmp.keySet()) {
 				if(record.contains(sta))
 					continue;
@@ -366,23 +368,30 @@ public class getTable {
 					tmpro.setPro_num(pronum);
 					tmpro.setSuccessors(prosuc);
 					ArrayList<Project> ttmp=new ArrayList<Project> ();
+					ArrayList<Project> ttmpstore=new ArrayList<Project> ();
 					ttmp.add(tmpro);
+					System.out.println(t);
 					for(Project protmp:sstmp.get(sta)) {
-						if(G.get(protmp.getPro_num()).getRight().get(protmp.getDot_positon()).equals(trans)&&!(protmp==pro)) 
+						System.out.println(trans);
+						if(protmp.getDot_positon()<G.get(protmp.getPro_num()).getRight().size()&&G.get(protmp.getPro_num()).getRight().get(protmp.getDot_positon()).equals(trans)&&!(protmp==pro)) 
 							{
-							tmpro=new Project();
-							tmpro.setPro_num(pro.getPro_num());
-							tmpro.setDot_positon(pro.getDot_positon()+1);
-							tmpro.setSuccessors(pro.getSuccessors());
-							ttmp.add(tmpro);
+								tmpro=new Project();
+								tmpro.setPro_num(protmp.getPro_num());
+								tmpro.setDot_positon(protmp.getDot_positon()+1);
+								tmpro.setSuccessors(protmp.getSuccessors());
+								ttmp.add(tmpro);
+							
 							}
+						
+						
 					}
+					
 					ttmp=get_clousre(ttmp);
+					System.out.println(ttmpstore.size());
 					boolean flag=true;
 					for(int s:sstmp.keySet())
 					{
 						
-						//if(sstmp.get(s).containsAll(ttmp))
 						if(judge_repeat(sstmp.get(s),ttmp))
 						{
 							GO(sta,s,trans);
@@ -402,7 +411,7 @@ public class getTable {
 			
 			
 		}
-		
+		System.out.println(status.keySet());
 		
 		System.out.println(status.size());
 		System.out.println(statrans.size());
@@ -442,53 +451,94 @@ public class getTable {
 		for(int i=0;i<statrans.size();i++) {
 			System.out.println(statrans.get(i).getStartstatus()+"-----------"+statrans.get(i).getConstring()+"------------"+statrans.get(i).getEndstatus());
 		}
-		for(StateTran staTra:statrans) {
-			String str=staTra.getConstring().toString();
-			if(staTra.getStartstatus()==1)
-			{
-				HashMap<String,String> tmp=new HashMap<String,String>();
-				String strtemp="acc";
-				tmp.put(str,strtemp);
-				Atable.put(staTra.getStartstatus(), tmp);
-				continue;
-			}
-			if(inVT(str)) {
-				HashMap<String,Integer> tmp=new HashMap<String,Integer>();
-				tmp.put(str,staTra.getEndstatus());
-				Gtable.put(staTra.getStartstatus(), tmp);
-			}else {
-				HashMap<String,String> tmp=new HashMap<String,String>();
-				String strtemp="S"+staTra.getEndstatus();
-				tmp.put(str,strtemp);
-				Atable.put(staTra.getStartstatus(), tmp);
-			}
-		}
+		
+		
+		initstavect();
+
 		for(int sta:status.keySet()) {
 			for(Project pro:status.get(sta)) {
-				if(pro.getDot_positon()==G.get(pro.getPro_num()).getRight().size()) {
-					HashMap<String,String> tmp=new HashMap<String,String>();
-					String str=pro.getSuccessors().toString();
-					tmp.put(str,"r"+pro.getPro_num());
-					Atable.put(sta, tmp);
+				int pronum=pro.getPro_num();
+				int prodot=pro.getDot_positon();
+				HashSet<String> prosuc=pro.getSuccessors();
+				if(prodot==G.get(pronum).getRight().size()) {
+					if(G.get(pronum).getLeft().equals("Y"))
+					{
+						table[sta][staconvect.get("#")]="acc";
+					}else {
+						for(String str:prosuc) {
+							table[sta][staconvect.get(str)]="r"+pronum;
+						}
+					}
+					continue;
+				}
+				String trans=G.get(pronum).getRight().get(prodot).toString();
+				if(inVT(trans)) {
+					table[sta][staconvect.get(trans)]=String.valueOf(findGOlink(sta,trans));
+				}else {
+					if(sta!=findGOlink(sta,trans))
+					table[sta][staconvect.get(trans)]="S"+findGOlink(sta,trans);
 				}
 			}
 		}
-		int len=existT.size();
-		existT.add("#");
-	
-			for(int i=0;i<status.size();i++) {
-				for(int j=0;j<existT.size();j++){
-					System.out.print(Atable.get(i).get(existT.get(j))+" ");
+
+		String[] tmpstaconvect=new String[staconvect.size()];
+		for(String str:staconvect.keySet()) {
+			tmpstaconvect[staconvect.get(str)]=str;
+		}
+		for(int i=0;i<tmpstaconvect.length;i++) {
+			System.out.print(tmpstaconvect[i]+"    ");
+		}
+		System.out.println("");
+		for(int k:status.keySet()) {
+			for(int i=0;i<staconvect.size();i++) {
 					
+					
+					System.out.print(table[k][i]+"   ");
 				}
-				System.out.println(Atable.get(i));
-				System.out.println("");
+			System.out.println("  ");
 			}
 			
 		
 		
 	}
-public static void main(String[] args) { 
+	public int findGOlink(int start,String str) {
+		for(int i=0;i<statrans.size();i++) {
+			if(statrans.get(i).getStartstatus()==start&&statrans.get(i).getConstring().equals(str))
+				return statrans.get(i).getEndstatus();
+		}
+		return -1;
+	}
+	public void initstavect() {
+		int t=0;
+		for(int i=0;i<existT.size();i++) {
+			String str=existT.get(i);
+			if(!str.equals("¦Å"))
+			{
+				staconvect.put(str, t);
+				t=t+1;
+			}
+		}
+		staconvect.put("#", t);
+		t=t+1;
+		for(int i=0;i<existV.size();i++) {
+			String str=existV.get(i);
+			if(!str.equals("Y"))
+			{
+				staconvect.put(str, t);
+				t=t+1;
+			}
+		}
+	System.out.println(staconvect.keySet());
+	System.out.println(staconvect.values());
+		int len=staconvect.size();
+		table=new String[status.size()][len];
+		for(int i=0;i<status.size();i++) {
+			for(int j=0;j<len;j++)
+				table[i][j]="  ";
+		}
+		
+	}
+	public static void main(String[] args) { 
 
 		 getTable ti=new getTable();
 		 try {
