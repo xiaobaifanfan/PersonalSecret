@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import mode.Grammer;
 import mode.Project;
 import mode.StateTran;
+import wordanalyse.wordAnalyse;
 
 public class getTable {
 	 String V[];
@@ -97,6 +98,7 @@ public class getTable {
 			 index.get(G.get(i1).getLeft()).addElement(i1);
 		 }
 		 existV.add(0, "Y");
+		 bufread.close();
 		 System.out.println("index集合如下：");
 			 System.out.println(index.keySet());
 			 System.out.println(index.values());
@@ -585,6 +587,7 @@ public class getTable {
 			}
 			
 			if(lrinfo.equals("acc")) {
+				System.out.print("--- w:"+strtoken+"    action["+curstate+"]["+strtoken+"]=" +lrinfo+"接受！");
 				parser1.pop();
 				parser2.pop();
 				prints(parser2,parser1);
@@ -609,8 +612,11 @@ public class getTable {
 			System.out.print(sta22.pop()+" ");
 		}
 	}
-	public static void main(String[] args) { 
+	public static void main(String[] args) throws IOException { 
 
+		wordAnalyse TI=new wordAnalyse();
+		TI.read_procedure();
+		TI.wordresult();
 		 getTable ti=new getTable();
 		 try {
 			ti.get_grammer();
