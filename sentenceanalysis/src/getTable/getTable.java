@@ -29,8 +29,6 @@ public class getTable {
 	 Vector<String> existV=new Vector<String>();
 	 Vector<String>  existT=new Vector<String>();
 	 Vector<Grammer> G=new Vector<Grammer>();
-	 String[][] Atable;
-	 Integer[][] Gtable;
 	 String[][] table;
 	 Vector<StateTran> statrans=new Vector<StateTran>();
 	 HashMap<String,Vector> first=new HashMap<String,Vector>();
@@ -317,7 +315,7 @@ public class getTable {
 		}
 		
 	}
-	if(record.size()==statuss2.size()&&statuss2.size()<=statuss1.size())
+	if(record.size()==statuss2.size()&&statuss2.size()==statuss1.size())
 		return true;
 	return false;
 		
@@ -485,16 +483,21 @@ public class getTable {
 		for(String str:staconvect.keySet()) {
 			tmpstaconvect[staconvect.get(str)]=str;
 		}
+		System.out.print("  \t ");
 		for(int i=0;i<tmpstaconvect.length;i++) {
-			System.out.print(tmpstaconvect[i]+"    ");
+			System.out.print(tmpstaconvect[i]+" \t");
 		}
 		System.out.println("");
 		for(int k:status.keySet()) {
-			for(int i=0;i<staconvect.size();i++) {
-					
-					
-					System.out.print(table[k][i]+"   ");
+			System.out.print(k+" \t");			
+			for(int i=0;i<staconvect.size();i++) 
+			{
+				if(i<existT.size())
+				System.out.print(table[k][i]+"\t");
+				else {
+					System.out.print(table[k][i]+" \t");	
 				}
+			}
 			System.out.println("  ");
 			}
 			
@@ -534,7 +537,7 @@ public class getTable {
 		table=new String[status.size()][len];
 		for(int i=0;i<status.size();i++) {
 			for(int j=0;j<len;j++)
-				table[i][j]="  ";
+				table[i][j]="--";
 		}
 		
 	}
