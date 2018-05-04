@@ -24,8 +24,7 @@ import mode.StateTran;
 import wordanalyse.wordAnalyse;
 
 public class getTable {
-	 String V[];
-	 String T[];
+
 	 Vector<String> existV=new Vector<String>();
 	 Vector<String>  existT=new Vector<String>();
 	 Vector<Grammer> G=new Vector<Grammer>();
@@ -36,105 +35,85 @@ public class getTable {
 	 ConcurrentHashMap<String,Integer> staconvect=new  ConcurrentHashMap<String,Integer>();
 	 HashMap<String,Vector<Integer>>index=new HashMap<String,Vector<Integer>>();
 	 public void get_grammer() throws IOException {
-		 int i=0;
-		 Grammer tmp=new Grammer();
-		 tmp.setLeft("Y");
-		 String filename="D:/production.txt";
+		 String filename="D:/grammar.txt";
 		 File file=new File(filename);
 		 BufferedReader bufread;
 		 String read=null;
+		 String left=null;
+		 String[] right=null;
 		 bufread=new BufferedReader(new FileReader(file));
-		 read=bufread.readLine();
-		 V=read.split("");
-		 read=bufread.readLine();
-		 T=read.split("");
 		 try {
 			while((read=bufread.readLine())!=null) {
-				String[] linestr=read.split("");
-				int len=read.length();
-					Grammer gtmp=new Grammer();
-					Vector<String> temp=new Vector<String>();
-					if(inVT(linestr[0])) {
-						if(!existV.contains(linestr[0]))
-						existV.add(linestr[0]);
-					}
-					else {
-						if(!existT.contains(linestr[0]))
-						existT.add(linestr[0]);
-					}
-					for(int j=3;j<len;j++) {
-						if(inVT(linestr[j])) {
-							if(!existV.contains(linestr[j]))
-							existV.add(linestr[j]);
-						}
-						else {
-							if(!existT.contains(linestr[j]))
-							existT.add(linestr[j]);
-						}	
-							temp.add(linestr[j]);
-					}
-					gtmp.setLeft(linestr[0]);
-					gtmp.setRight(temp);
-					G.add(gtmp);
-					i=i+1;
+				Grammer g=new Grammer();
+				Vector<String> vtmp=new Vector<String>();
+				left=read.split("->")[0].trim();
+				if(!existV.contains(left))
+					existV.add(left);
+				right=read.split("->")[1].trim().split(" ");
+				for(int i=0;i<right.length;i++) {
+					vtmp.add(right[i]);
+				}
+				g.setLeft(left);
+				g.setRight(vtmp);
+				G.add(g);
 				}
 				
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		 Vector<String> temp=new Vector<String>();
-		 temp.add(G.get(0).getLeft());
-		 //temp.add("ε");
-		 tmp.setRight(temp);
-		 G.add(0, tmp);
+		
 		 for(int i1=0;i1<G.size();i1++) {
 			 if(index.get(G.get(i1).getLeft())==null) {
 				 	Vector<Integer> vtmp=new Vector<Integer>();
 					index.put(G.get(i1).getLeft(), vtmp);
 			 }
 			 index.get(G.get(i1).getLeft()).addElement(i1);
-		 }
-		 existV.add(0, "Y");
+		 }	 
 		 bufread.close();
-		 System.out.println("index集合如下：");
-			 System.out.println(index.keySet());
-			 System.out.println(index.values());
+//		 System.out.println("index集合如下：");
+//			 System.out.println(index.keySet());
+//			 System.out.println(index.values());
+//		 System.out.println("");
+//		 System.out.println("读入的文法G向量如下:");
+//		 for(int i1=0;i1<G.size();i1++)
+//		 {
+//			 System.out.println(G.get(i1).getLeft()+" "+G.get(i1).getRight());
+//		 }
+//		 System.out.println("");
+//		 System.out.println("文本中的非终结符如下:");
+//		 for(int i1=0;i1<existV.size();i1++)
+//		 {
+//			 System.out.print(existV.get(i1)+" ");
+//		 }
+//		 System.out.println("");
+		 get_T();
+//		 System.out.println("");
+//		 System.out.println("文本中的终结符如下:");
+//		 for(int i1=0;i1<existT.size();i1++)
+//		 {
+//			 System.out.print(existT.get(i1)+" ");
+//		 }
+//		 System.out.println("");
 		 
-		 System.out.println("非终结符V集合如下:");
-		 for(int i1=0;i1<V.length;i1++)
+	 }
+	 public void get_T() {
+		 for(Grammer g:G) 
 		 {
-			 System.out.print(V[i1]+" ");
-		 }
-		 System.out.println("");
-		 System.out.println("终结符T集合如下: ");
-		 for(int i1=0;i1<T.length;i1++)
-		 {
-			 System.out.print(T[i1]+" ");
-		 }
-		 System.out.println("");
-		 System.out.println("读入的文法G向量如下:");
-		 for(int i1=0;i1<G.size();i1++)
-		 {
-			 System.out.println(G.get(i1).getLeft()+" "+G.get(i1).getRight());
-		 }
-		 System.out.println("");
-		 System.out.println("文本中的非终结符如下:");
-		 for(int i1=0;i1<existV.size();i1++)
-		 {
-			 System.out.print(existV.get(i1)+" ");
-		 }
-		 System.out.println("");
-		 System.out.println("文本中的终结符如下:");
-		 for(int i1=0;i1<existT.size();i1++)
-		 {
-			 System.out.print(existT.get(i1)+" ");
+			 Vector<String> tmp=g.getRight();
+			 for(int i=0;i<tmp.size();i++)
+			 {
+				 if(existV.contains(tmp.get(i))||tmp.get(i).equals("$"))
+					 continue;
+				 if(!existT.contains(tmp.get(i)))
+					 existT.add(tmp.get(i));
+			 }
 		 }
 	 }
 	 public boolean inVT(String str)
 	 {
-		 for(int i=0;i<V.length;i++) {
-			 if(str.equals(V[i]))
+		 for(int i=0;i<existV.size();i++) {
+			 if(str.equals(existV.get(i)))
 				 return true;
 		 }
 		 return false;
@@ -180,13 +159,13 @@ public class getTable {
 							 }
 						 }
 					 
-					 if(first.get(str).contains("ε")) {
+					 if(first.get(str).contains("$")) {
 						 isempty=true;
 						 t++;
 					 }
 				 }
-				 if((t==g.getRight().size())&&(!first.get(g.getLeft()).contains("ε"))) {
-					 first.get(g.getLeft()).add("ε");
+				 if((t==g.getRight().size())&&(!first.get(g.getLeft()).contains("$"))) {
+					 first.get(g.getLeft()).add("$");
 					 change=true;
 				 }
 			 }
@@ -208,17 +187,17 @@ public class getTable {
 				 result.add(i);
 				 break;
 			 }
-			 if(!first.get(i).contains("ε")) {
+			 if(!first.get(i).contains("$")) {
 				 result.addAll(first.get(i));
 				 
 				 break;
 			 }
 			 result.addAll(first.get(i));
-			 result.remove("ε");
+			 result.remove("$");
 			 count++;
 		 }
 		 if(count==s.size())
-			 result.add("ε");
+			 result.add("$");
 
 		 return result;
 	 }
@@ -257,9 +236,9 @@ public class getTable {
 								vtmp.add(G.get(tmppnum).getRight().get(k).toString());
 							}
 							new_successor=judge_first(vtmp,new_successor);
-							if(new_successor.contains("ε")) {
+							if(new_successor.contains("$")) {
 								new_successor.addAll(tmppsuc);
-								new_successor.remove("ε");
+								new_successor.remove("$");
 							}
 						}
 						Iterator<Integer> it = index.get(V).listIterator(); 
@@ -358,7 +337,7 @@ public class getTable {
 					int prodot=pro.getDot_positon();
 					HashSet<String> prosuc=pro.getSuccessors();
 					int lenGsize=G.get(pronum).getRight().size();
-					if(lenGsize==prodot||G.get(pronum).getRight().get(0).equals("ε"))
+					if(lenGsize==prodot||G.get(pronum).getRight().get(0).equals("$"))
 						continue;
 					String trans=G.get(pronum).getRight().get(prodot).toString();
 					if(record_status.contains(trans))
@@ -449,17 +428,14 @@ public class getTable {
 		for(int i=0;i<statrans.size();i++) {
 			System.out.println(statrans.get(i).getStartstatus()+"-----------"+statrans.get(i).getConstring()+"------------"+statrans.get(i).getEndstatus());
 		}
-		
-		
 		initstavect();
-
 		for(int sta:status.keySet()) {
 			for(Project pro:status.get(sta)) {
 				int pronum=pro.getPro_num();
 				int prodot=pro.getDot_positon();
 				HashSet<String> prosuc=pro.getSuccessors();
 				if(prodot==G.get(pronum).getRight().size()) {
-					if(G.get(pronum).getLeft().equals("Y"))
+					if(G.get(pronum).getLeft().equals("S"))
 					{
 						table[sta][staconvect.get("#")]="acc";
 					}else {
@@ -473,7 +449,7 @@ public class getTable {
 				if(inVT(trans)) {
 					table[sta][staconvect.get(trans)]=String.valueOf(findGOlink(sta,trans));
 				}else {
-					if(sta!=findGOlink(sta,trans))
+					if(sta!=findGOlink(sta,trans)&&!trans.equals("$"))
 					table[sta][staconvect.get(trans)]="S"+findGOlink(sta,trans);
 				}
 			}
@@ -502,6 +478,8 @@ public class getTable {
 			}
 			
 		
+			
+		
 		
 	}
 	public int findGOlink(int start,String str) {
@@ -515,7 +493,7 @@ public class getTable {
 		int t=0;
 		for(int i=0;i<existT.size();i++) {
 			String str=existT.get(i);
-			if(!str.equals("ε"))
+			if(!str.equals("$"))
 			{
 				staconvect.put(str, t);
 				t=t+1;
@@ -525,7 +503,7 @@ public class getTable {
 		t=t+1;
 		for(int i=0;i<existV.size();i++) {
 			String str=existV.get(i);
-			if(!str.equals("Y"))
+			if(!str.equals("S"))
 			{
 				staconvect.put(str, t);
 				t=t+1;
@@ -627,7 +605,7 @@ public class getTable {
 			ti.get_first();
 			ti.get_stauts();
 			ti.generateLR();
-			ti.stack_parser();
+//			ti.stack_parser();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
