@@ -35,7 +35,7 @@ public class getTable {
 	 ConcurrentHashMap<String,Integer> staconvect=new  ConcurrentHashMap<String,Integer>();
 	 HashMap<String,Vector<Integer>>index=new HashMap<String,Vector<Integer>>();
 	 public void get_grammer() throws IOException {
-		 String filename="D:/grammar.txt";
+		 String filename="D:/tinyc.txt";
 		 File file=new File(filename);
 		 BufferedReader bufread;
 		 String read=null;
@@ -46,10 +46,10 @@ public class getTable {
 			while((read=bufread.readLine())!=null) {
 				Grammer g=new Grammer();
 				Vector<String> vtmp=new Vector<String>();
-				left=read.split("->")[0].trim();
+				left=read.split(":")[0].trim();
 				if(!existV.contains(left))
 					existV.add(left);
-				right=read.split("->")[1].trim().split(" ");
+				right=read.split(":")[1].trim().split(" ");
 				for(int i=0;i<right.length;i++) {
 					vtmp.add(right[i]);
 				}
@@ -71,30 +71,30 @@ public class getTable {
 			 index.get(G.get(i1).getLeft()).addElement(i1);
 		 }	 
 		 bufread.close();
-//		 System.out.println("index集合如下：");
-//			 System.out.println(index.keySet());
-//			 System.out.println(index.values());
-//		 System.out.println("");
-//		 System.out.println("读入的文法G向量如下:");
-//		 for(int i1=0;i1<G.size();i1++)
-//		 {
-//			 System.out.println(G.get(i1).getLeft()+" "+G.get(i1).getRight());
-//		 }
-//		 System.out.println("");
-//		 System.out.println("文本中的非终结符如下:");
-//		 for(int i1=0;i1<existV.size();i1++)
-//		 {
-//			 System.out.print(existV.get(i1)+" ");
-//		 }
-//		 System.out.println("");
+		 System.out.println("index集合如下：");
+			 System.out.println(index.keySet());
+			 System.out.println(index.values());
+		 System.out.println("");
+		 System.out.println("读入的文法G向量如下:");
+		 for(int i1=0;i1<G.size();i1++)
+		 {
+			 System.out.println(G.get(i1).getLeft()+" "+G.get(i1).getRight());
+		 }
+		 System.out.println("");
+		 System.out.println("文本中的非终结符如下:"+existV.size());
+		 for(int i1=0;i1<existV.size();i1++)
+		 {
+			 System.out.print(existV.get(i1)+" ");
+		 }
+		 System.out.println("");
 		 get_T();
-//		 System.out.println("");
-//		 System.out.println("文本中的终结符如下:");
-//		 for(int i1=0;i1<existT.size();i1++)
-//		 {
-//			 System.out.print(existT.get(i1)+" ");
-//		 }
-//		 System.out.println("");
+		 System.out.println("");
+		 System.out.println("文本中的终结符如下:"+existT.size());
+		 for(int i1=0;i1<existT.size();i1++)
+		 {
+			 System.out.print(existT.get(i1)+" ");
+		 }
+		 System.out.println("");
 		 
 	 }
 	 public void get_T() {
@@ -173,11 +173,11 @@ public class getTable {
 			 
 		 }
 	//	first.remove("Y");
-		 System.out.println("");
-	for(int i=0;i<existV.size();i++) {
-		System.out.println(existV.get(i)+"的first 集为"+first.get(existV.get(i)));
-	}
-		
+//		 System.out.println("");
+//	for(int i=0;i<existV.size();i++) {
+//		System.out.println(existV.get(i)+"的first 集为"+first.get(existV.get(i)));
+//	}
+//		
 		 return;
 	 }
 	 public HashSet<String> judge_first(Vector<String> s,HashSet<String> result) {
@@ -392,12 +392,12 @@ public class getTable {
 		
 		System.out.println(status.size());
 		System.out.println(statrans.size());
-		for(int sta:status.keySet()) {
-			System.out.println("states:"+sta+"如下：");
-			for(Project pro:status.get(sta)) {
-				System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
-			}
-		}
+//		for(int sta:status.keySet()) {
+//			System.out.println("states:"+sta+"如下：");
+//			for(Project pro:status.get(sta)) {
+//				System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
+//			}
+//		}
 		
 	}
 
@@ -425,9 +425,9 @@ public class getTable {
 		 return temp;
 	 }
 	public void generateLR() {
-		for(int i=0;i<statrans.size();i++) {
-			System.out.println(statrans.get(i).getStartstatus()+"-----------"+statrans.get(i).getConstring()+"------------"+statrans.get(i).getEndstatus());
-		}
+//		for(int i=0;i<statrans.size();i++) {
+//			System.out.println(statrans.get(i).getStartstatus()+"-----------"+statrans.get(i).getConstring()+"------------"+statrans.get(i).getEndstatus());
+//		}
 		initstavect();
 		for(int sta:status.keySet()) {
 			for(Project pro:status.get(sta)) {
@@ -435,7 +435,7 @@ public class getTable {
 				int prodot=pro.getDot_positon();
 				HashSet<String> prosuc=pro.getSuccessors();
 				if(prodot==G.get(pronum).getRight().size()) {
-					if(G.get(pronum).getLeft().equals("S"))
+					if(G.get(pronum).getLeft().equals("start"))
 					{
 						table[sta][staconvect.get("#")]="acc";
 					}else {
@@ -503,7 +503,7 @@ public class getTable {
 		t=t+1;
 		for(int i=0;i<existV.size();i++) {
 			String str=existV.get(i);
-			if(!str.equals("S"))
+			if(!str.equals("start"))
 			{
 				staconvect.put(str, t);
 				t=t+1;
@@ -525,9 +525,8 @@ public class getTable {
 		Stack<String> parser1=new Stack<String>();
 		Stack<Integer> parser2=new Stack<Integer>();
 		System.out.println("请输入你要分析的语句：");
-		String sentence=in.next();
-		System.out.println(sentence);
-		String[] tempw=sentence.split("");
+		String sentence=in.nextLine();
+		String[] tempw=sentence.split(" ");
 		 for(int i=tempw.length-1;i>-1;i--) {
 			 wstack.push(tempw[i]);
 		 }
@@ -540,7 +539,7 @@ public class getTable {
 				strtoken="#";
 			else
 				strtoken=wstack.pop();
-			
+			System.out.println("");
 			int  curstate=parser2.peek();
 			String lrinfo=table[curstate][staconvect.get(strtoken)];
 			if(lrinfo.contains("S")) {
@@ -575,6 +574,8 @@ public class getTable {
 				System.out.println("语法分析完成");
 				return;
 				}
+			if(lrinfo.equals("--"))
+				continue;
 			
 			prints(parser2,parser1);
 		}
@@ -593,26 +594,27 @@ public class getTable {
 			System.out.print(sta22.pop()+" ");
 		}
 	}
-	public static void main(String[] args) throws IOException { 
-
-		wordAnalyse TI=new wordAnalyse();
-		TI.read_procedure();
-		TI.wordresult();
-		 getTable ti=new getTable();
-		 try {
-			ti.get_grammer();
-			ti.initfirst();
-			ti.get_first();
-			ti.get_stauts();
-			ti.generateLR();
+//	public static void main(String[] args) throws IOException { 
+//
+//		
+//		 getTable ti=new getTable();
+//		 try {
+//			ti.get_grammer();
+//			ti.initfirst();
+//			ti.get_first();
+//			ti.get_stauts();
+//			ti.generateLR();
 //			ti.stack_parser();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.exit(0);
-
-		 
-	 }
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		 wordAnalyse TI=new wordAnalyse();
+//			TI.read_procedure();
+//			TI.wordresult();
+//		
+//
+//		 
+//	 }
 	 
 }
