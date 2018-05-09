@@ -225,7 +225,7 @@ public class getTable {
 						}
 							
 						HashSet<String> new_successor=new HashSet<String> ();
-						new_successor.add("#");
+						//new_successor.add("#");
 						if(pro.getDot_positon()==G.get(tmppnum).getRight().size()-1)
 						{
 							new_successor=pro.getSuccessors();
@@ -258,7 +258,7 @@ public class getTable {
 							}else {
 								int temporigi=p.get(point).getSuccessors().size();
 								HashSet<String> tmp=new HashSet<String>();
-								tmp.add("#");
+								//tmp.add("#");
 								tmp=ptmp.getSuccessors();
 								tmp.addAll(p.get(point).getSuccessors());
 								ptmp.setSuccessors(tmp);
@@ -271,7 +271,9 @@ public class getTable {
 					}
 		        
 					}
+			
 			p=delrepeat(p);
+			
 			return p;
 	 }
 	 public int isContainPro(ArrayList<Project> s,Project tmp) {
@@ -392,13 +394,34 @@ public class getTable {
 		
 		System.out.println(status.size());
 		System.out.println(statrans.size());
-		for(int sta:status.keySet()) {
-			System.out.println("states:"+sta+"如下：");
-			for(Project pro:status.get(sta)) {
-				System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
-			}
-		}
 		
+//		for(int sta:status.keySet()) {
+//			System.out.println("states:"+sta+"如下："+"---------------"+status.get(sta).size());
+//			int tempnum=0;
+//			for(Project pro:status.get(sta)) {
+//				for(String sucstr:pro.getSuccessors())
+//				{ 
+//					System.out.print(G.get(pro.getPro_num()).getLeft()+"->");
+//					for(int h=0;h<G.get(pro.getPro_num()).getRight().size();h++) {
+//						if(h<pro.getDot_positon())
+//							System.out.print(G.get(pro.getPro_num()).getRight().get(h));
+//						else if(h==pro.getDot_positon()) {
+//							System.out.print("【 。】");
+//							System.out.print(G.get(pro.getPro_num()).getRight().get(h));
+//						}else {
+//							System.out.print(G.get(pro.getPro_num()).getRight().get(h));
+//						}
+//					}
+//					if(pro.getDot_positon()==G.get(pro.getPro_num()).getRight().size())
+//						System.out.print("【 。】");
+//					System.out.println("----"+sucstr);
+//				}
+//				//System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
+//				
+//			}
+//			
+//		}
+//		
 	}
 
 	public void GO(int i,int j,String str) {
@@ -521,10 +544,11 @@ public class getTable {
 	}
 	public void stack_parser() throws IOException {
 		Stack<String> wstack=new Stack<String>();
+		Scanner in=new Scanner(System.in);
 		Stack<String> parser1=new Stack<String>();
 		Stack<Integer> parser2=new Stack<Integer>();
-		 wordAnalyse tii=new wordAnalyse();
-			wstack=tii.get_wstack();
+		wordAnalyse tii=new wordAnalyse();
+		wstack=tii.get_wstack();
 		parser1.push("#");
 		parser2.push(0);
 		prints(parser2,parser1);
@@ -534,9 +558,9 @@ public class getTable {
 				strtoken="#";
 			else
 				strtoken=wstack.pop();
-			System.out.println("");
 			int  curstate=parser2.peek();
 			String lrinfo=table[curstate][staconvect.get(strtoken)];
+			
 			if(lrinfo.contains("S")) {
 				int getstate=Integer.parseInt(lrinfo.replaceAll("[^(0-9)]", ""));
 				System.out.print("--- w:"+strtoken+"    action["+curstate+"]["+strtoken+"]=" +lrinfo+" 移进状态"+getstate+"并输入符号"+strtoken);
@@ -570,7 +594,11 @@ public class getTable {
 				return;
 				}
 			if(lrinfo.equals("--"))
+				{
+				System.out.println(lrinfo+"0000000000000000000000000000000"+strtoken);
 				continue;
+				}
+			
 			
 			prints(parser2,parser1);
 		}
@@ -606,7 +634,7 @@ public class getTable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		
 
 		 
