@@ -6,9 +6,16 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Stack;
+import java.util.Vector;
+
+import mode.Grammer;
 
 public class wordAnalyse{
+	public String tmpstr=new String();
 	public int Propoint;
 	String procedure=new String();
 	int cleanprocedure=0;
@@ -18,7 +25,7 @@ public class wordAnalyse{
 	static String operatorTable[]= {
 			"+", "-", "*", "/", "<", "<=", ">", ">=", "=", "==","!=", ";", "(", ")", "^", ",", "\"", "\'", "#", "&",
 			"&&", "|", "||", "%", "~", "<<", ">>", "[", "]", "{","}", "\\", ".", "?", ":", "!"};
-   static String tokenTable[]= {};
+   static ArrayList<String> tokenTable=new ArrayList<String> ();
    public void read_procedure() throws IOException {
 	   BufferedReader reader = new BufferedReader(new FileReader("D:/avgscore.txt"));
 	   String buf;
@@ -105,44 +112,73 @@ public boolean IsDigit(String digit) {
 	else
 		return false;
    }
-    public void wordresult() {
+    public void wordresult() throws IOException {
     	int sortid=-1;
 	    String identifyword=new String();
+	    FileOutputStream testfile = new FileOutputStream("D:/changfan.txt");
+   	 	testfile.write(new String("").getBytes());
+	   
 	    while(sortid!=0) 
 	    {
-	    	sortid=wordTranslator(identifyword, sortid);
+	    	sortid=wordTranslator(sortid);
+	    	 String filename="D:/changfan.txt";
+	 	    RandomAccessFile randomFile=new RandomAccessFile(filename,"rw");
 	    	if(sortid==100)
 	    	{
-	    		
-	    		for(int i=0;i<tokenTable.length;i++) {
-	    			if(tokenTable[i].equals(identifyword))
-	    			{
-	    				break;
-	    			}
-	    			if(tokenTable[i]==null) {
-	    				tokenTable[i]=identifyword;
-	    			}
-	    		}
-	    		System.out.println("(100,"+identifyword+")标识符");
+	    		if(!tokenTable.contains(tmpstr))
+	    			tokenTable.add(tmpstr);
+	    		//System.out.println(tmpstr+"->identify");
+	    		try {
+	    			long fileLength = randomFile.length();
+	    			randomFile.seek(fileLength);
+					randomFile.writeBytes("( "+tmpstr+" "+100+" )\r\n");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 	    	}
 	    	else if(sortid==99) 
 	    	{
-	    		System.out.println("(99,"+identifyword+")数字");
+	    		//System.out.println(tmpstr+"->number");
+	    		try {
+	    			long fileLength = randomFile.length();
+	    			randomFile.seek(fileLength);
+					randomFile.writeBytes("( "+tmpstr+" "+99+" )\r\n");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 	    	}
 	    	else if(sortid>31&&sortid<68)
 	    	{
-	    		System.out.println("("+sortid+","+operatorTable[sortid-32]+")运算符/界符");
+	    		//System.out.println(operatorTable[sortid-32]+"->结符");
+	    		try {
+	    			long fileLength = randomFile.length();
+	    			randomFile.seek(fileLength);
+					randomFile.writeBytes("( "+operatorTable[sortid-32]+" "+sortid+" )\r\n");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 	    	}
 	    	else if(sortid>0&&sortid<32)
 	    	{
-	    		System.out.println("("+sortid+","+keywordTable[sortid-1]+")关键字");
+	    		tmpstr=keywordTable[sortid-1];
+	    		tmpstr=tmpstr.toUpperCase();
+	    		//System.out.println(keywordTable[sortid-1].toUpperCase()+"->keyword");
+	    		try {
+	    			long fileLength = randomFile.length();
+	    			randomFile.seek(fileLength);
+					randomFile.writeBytes("( "+keywordTable[sortid-1].toUpperCase()+" "+sortid+" )\r\n");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+	    		
 	    	}
+	    	randomFile.close();
 	    }
     }
-   public int wordTranslator(String identifyword,int sortid) 
+   public int wordTranslator(int sortid) 
    {
 	   int i,count=0;
-	   identifyword="";
+	   String identifyword="";
 	   char ch=procedure.charAt(Propoint);
 	   while(ch==' ') 
 	   {
@@ -163,6 +199,7 @@ public boolean IsDigit(String digit) {
 		   {
 			   sortid=100;
 		   }
+		   tmpstr=identifyword;
 		   return sortid;
 	   }
 	   else if(Character.isDigit(procedure.charAt(Propoint)))
@@ -173,6 +210,7 @@ public boolean IsDigit(String digit) {
 			   Propoint++;
 		   }
 		   sortid=99;
+		   tmpstr=identifyword;
 		   return sortid;
 	   }
 	   else if(ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == ';' || ch == '(' || ch == ')' || ch == '^'
@@ -290,12 +328,56 @@ public boolean IsDigit(String digit) {
 	   }
 	   return sortid;
    }
+   public Stack<String> get_wstack() throws IOException{
+	 Stack wstack=new Stack<String>();
+	 ArrayList<String> warray=new ArrayList<String>();
+	 String filename="D:/changfan.txt";
+	 File file=new File(filename);
+	 BufferedReader bufread;
+	 String read=null;
+	 String left=null;
+	 String[] right=null;
+	 try {
+		bufread=new BufferedReader(new FileReader(file));
+		while((read=bufread.readLine())!=null)
+		{
+			String[] tmp=read.trim().split(" ");
+			int sortnum=Integer.parseInt(tmp[2]);
+			switch(sortnum)
+			{
+			case 100:{
+				warray.add("IDENTIFIER");
+				continue;
+			}
+			case 99:{
+				warray.add("CONSTANT");
+				continue;
+			}
+			default :{
+				warray.add(tmp[1]);
+				continue;
+			}
+			}
+		}
+	} catch (FileNotFoundException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+		System.out.println(warray);
+		wstack.add("#");
+		for(int i=warray.size()-1;i>-1;i--)
+			wstack.push(warray.get(i));
+		System.out.println(wstack);
+		System.out.println(wstack.peek()+"---------------------------------------");
+	 return wstack;
+   }
 //   public static void main(String[] args) throws Exception  {
 //		
 //		wordAnalyse TI=new wordAnalyse();
 //		TI.read_procedure();
 //		TI.wordresult();
-//	    
+//		TI.get_wstack();
+//		
 //	}
 
 

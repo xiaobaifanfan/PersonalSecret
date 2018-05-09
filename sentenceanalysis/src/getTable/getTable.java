@@ -392,12 +392,12 @@ public class getTable {
 		
 		System.out.println(status.size());
 		System.out.println(statrans.size());
-//		for(int sta:status.keySet()) {
-//			System.out.println("states:"+sta+"如下：");
-//			for(Project pro:status.get(sta)) {
-//				System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
-//			}
-//		}
+		for(int sta:status.keySet()) {
+			System.out.println("states:"+sta+"如下：");
+			for(Project pro:status.get(sta)) {
+				System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
+			}
+		}
 		
 	}
 
@@ -519,17 +519,12 @@ public class getTable {
 		}
 		
 	}
-	public void stack_parser() {
+	public void stack_parser() throws IOException {
 		Stack<String> wstack=new Stack<String>();
-		Scanner in=new Scanner(System.in);
 		Stack<String> parser1=new Stack<String>();
 		Stack<Integer> parser2=new Stack<Integer>();
-		System.out.println("请输入你要分析的语句：");
-		String sentence=in.nextLine();
-		String[] tempw=sentence.split(" ");
-		 for(int i=tempw.length-1;i>-1;i--) {
-			 wstack.push(tempw[i]);
-		 }
+		 wordAnalyse tii=new wordAnalyse();
+			wstack=tii.get_wstack();
 		parser1.push("#");
 		parser2.push(0);
 		prints(parser2,parser1);
@@ -594,27 +589,27 @@ public class getTable {
 			System.out.print(sta22.pop()+" ");
 		}
 	}
-//	public static void main(String[] args) throws IOException { 
-//
-//		
-//		 getTable ti=new getTable();
-//		 try {
-//			ti.get_grammer();
-//			ti.initfirst();
-//			ti.get_first();
-//			ti.get_stauts();
-//			ti.generateLR();
-//			ti.stack_parser();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		 wordAnalyse TI=new wordAnalyse();
-//			TI.read_procedure();
-//			TI.wordresult();
-//		
-//
-//		 
-//	 }
+	public static void main(String[] args) throws IOException { 
+
+		 wordAnalyse TI=new wordAnalyse();
+			TI.read_procedure();
+			TI.wordresult();
+		 getTable ti=new getTable();
+		 try {
+			ti.get_grammer();
+			ti.initfirst();
+			ti.get_first();
+			ti.get_stauts();
+			ti.generateLR();
+			ti.stack_parser();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+
+		 
+	 }
 	 
 }
