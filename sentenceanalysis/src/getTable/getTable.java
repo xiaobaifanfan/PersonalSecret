@@ -21,20 +21,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import mode.Grammer;
 import mode.Project;
 import mode.StateTran;
+import mode.Symbol;
+import mode.stack_node;
 import wordanalyse.wordAnalyse;
 
-public class getTable {
-
-	 Vector<String> existV=new Vector<String>();
-	 Vector<String>  existT=new Vector<String>();
-	 Vector<Grammer> G=new Vector<Grammer>();
-	 String[][] table;
-	 Vector<StateTran> statrans=new Vector<StateTran>();
-	 HashMap<String,Vector> first=new HashMap<String,Vector>();
-	 ConcurrentHashMap<Integer, ArrayList<Project>> status=new ConcurrentHashMap<Integer,ArrayList<Project>>();
-	 ConcurrentHashMap<String,Integer> staconvect=new  ConcurrentHashMap<String,Integer>();
-	 HashMap<String,Vector<Integer>>index=new HashMap<String,Vector<Integer>>();
-	 public void get_grammer() throws IOException {
+public class getTable extends wordAnalyse{
+	 Vector<String> existV=new Vector<String>();//非终结符集合
+	 Vector<String>  existT=new Vector<String>();//终结符集合
+	 Vector<Grammer> G=new Vector<Grammer>();//存储产生式
+	 Vector<String> code=new Vector<String>();//生成的中间代码
+	 String[][] table;//LR分析表
+	 Vector<StateTran> statrans=new Vector<StateTran>();//状态转移三元组集合
+	 HashMap<String,Vector> first=new HashMap<String,Vector>();//first集。
+	 ConcurrentHashMap<Integer, ArrayList<Project>> status=new ConcurrentHashMap<Integer,ArrayList<Project>>();//状态集
+	 ConcurrentHashMap<String,Integer> staconvect=new  ConcurrentHashMap<String,Integer>();//根据字符查找索引
+	 HashMap<String,Vector<Integer>>index=new HashMap<String,Vector<Integer>>();//左部相同的产生式的序号
+	 public void get_grammer() throws IOException //读取C语言的抽取出来的文法
+	 {
 		 String filename="D:/tinyc.txt";
 		 File file=new File(filename);
 		 BufferedReader bufread;
@@ -97,7 +100,8 @@ public class getTable {
 		 System.out.println("");
 		 
 	 }
-	 public void get_T() {
+	 public void get_T() //获取非终结符向量
+	 {
 		 for(Grammer g:G) 
 		 {
 			 Vector<String> tmp=g.getRight();
@@ -110,7 +114,7 @@ public class getTable {
 			 }
 		 }
 	 }
-	 public boolean inVT(String str)
+	 public boolean inVT(String str)//判断是否是非终结符
 	 {
 		 for(int i=0;i<existV.size();i++) {
 			 if(str.equals(existV.get(i)))
@@ -118,7 +122,7 @@ public class getTable {
 		 }
 		 return false;
 	 }
-	 public void initfirst()
+	 public void initfirst()//为所有的终结符和非终结符初始化其first集合
 	 {
 		 for(int i=0;i<existT.size();i++) {
 			 Vector<String> vtmp=new Vector<String>();
@@ -130,7 +134,8 @@ public class getTable {
 			 first.put(existV.get(i), vtmp);
 		 }
 	 }
-	 public void get_first() {
+	 public void get_first()//求first集。
+ {
 		 
 		 boolean change=true;
 		 boolean isempty;
@@ -173,14 +178,15 @@ public class getTable {
 			 
 		 }
 	//	first.remove("Y");
-//		 System.out.println("");
-//	for(int i=0;i<existV.size();i++) {
-//		System.out.println(existV.get(i)+"的first 集为"+first.get(existV.get(i)));
-//	}
-//		
+		 System.out.println("");
+	for(int i=0;i<existV.size();i++) {
+		System.out.println(existV.get(i)+"的first 集为"+first.get(existV.get(i)));
+	}
+		
 		 return;
 	 }
-	 public HashSet<String> judge_first(Vector<String> s,HashSet<String> result) {
+	 public HashSet<String> judge_first(Vector<String> s,HashSet<String> result)//求first(Ba),get_closure()中会用到
+ {
 		 int count=0;
 		 for(String i:s) {
 			 if((!inVT(i))&&(!result.contains(i))) {
@@ -202,7 +208,8 @@ public class getTable {
 		 return result;
 	 }
 	 
-	 public ArrayList<Project> get_clousre(ArrayList<Project> p){
+	 public ArrayList<Project> get_clousre(ArrayList<Project> p)//求闭包
+	 {
 			boolean change=true;
 			ArrayList<Project> pptmp=new ArrayList<Project>();
 			while(change) {
@@ -276,7 +283,8 @@ public class getTable {
 			
 			return p;
 	 }
-	 public int isContainPro(ArrayList<Project> s,Project tmp) {
+	 public int isContainPro(ArrayList<Project> s,Project tmp) //判断数组中是否有project。注意：这边的包含指只要pronum和prodotposition相同就算是包括
+	 {
 		 for(int i=0;i<s.size();i++) {
 			 if(s.get(i).getPro_num()==tmp.getPro_num()&&s.get(i).getDot_positon()==tmp.getDot_positon())
 				 return i;
@@ -284,7 +292,8 @@ public class getTable {
 		 return -1;
 		 
 	 }
-	 boolean judge_repeat(ArrayList<Project> statuss1,ArrayList<Project> statuss2) {
+	 boolean judge_repeat(ArrayList<Project> statuss1,ArrayList<Project> statuss2)//判断两个项目集是否相等
+	 {
 		 ArrayList<Integer> record=new ArrayList<Integer>();
 	for(int j=0;j<statuss2.size();j++) {
 		for(int i=0;i<statuss1.size();i++) {
@@ -301,14 +310,16 @@ public class getTable {
 	return false;
 		
 	}
-	 public boolean hashsetequal(HashSet<String> set1,HashSet<String> set2 ) {
+	 public boolean hashsetequal(HashSet<String> set1,HashSet<String> set2 ) //判断两个几个是否相等
+	 {
 		 ArrayList<String> slist1=new ArrayList<String>(set1);
 		 ArrayList<String> slist2=new ArrayList<String>(set2);
 		 if(slist1.containsAll(slist2)&&slist1.size()==slist2.size())
 			 return true;
 		 return false;
 	 }
- 	public void get_stauts() {	
+ 	public void get_stauts()//获取状态集
+ {	
 		int t=0;
 		Project ptmp=new Project();
 		ptmp.setDot_positon(0);
@@ -395,10 +406,10 @@ public class getTable {
 		System.out.println(status.size());
 		System.out.println(statrans.size());
 		
-//		for(int sta:status.keySet()) {
-//			System.out.println("states:"+sta+"如下："+"---------------"+status.get(sta).size());
+		for(int sta:status.keySet()) {
+			System.out.println("states:"+sta+"如下："+"---------------"+status.get(sta).size());
 //			int tempnum=0;
-//			for(Project pro:status.get(sta)) {
+			for(Project pro:status.get(sta)) {
 //				for(String sucstr:pro.getSuccessors())
 //				{ 
 //					System.out.print(G.get(pro.getPro_num()).getLeft()+"->");
@@ -416,15 +427,16 @@ public class getTable {
 //						System.out.print("【 。】");
 //					System.out.println("----"+sucstr);
 //				}
-//				//System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
+				System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
 //				
-//			}
+		}
 //			
-//		}
+		}
 //		
 	}
 
-	public void GO(int i,int j,String str) {
+	public void GO(int i,int j,String str)//生成三元组，并加到statrans中存储。便于后面使用
+	{
 		 StateTran tmpstatran=new StateTran();
 		 tmpstatran.setConstring(str);
 		 tmpstatran.setEndstatus(j);
@@ -432,7 +444,8 @@ public class getTable {
 		 statrans.add(tmpstatran);
 		 
 	}
-	public ArrayList<Project> delrepeat( ArrayList<Project>  ttmp) {
+	public ArrayList<Project> delrepeat( ArrayList<Project>  ttmp)//项目集中根据产生式的下标和小数点位置去重
+	{
 		Vector<String> record=new Vector<String>();
 		ArrayList<Project> temp=new ArrayList<Project> ();
 		for(Project pro:ttmp) {
@@ -447,7 +460,8 @@ public class getTable {
 		}
 		 return temp;
 	 }
-	public void generateLR() {
+	public void generateLR()//生成LR表
+	{
 //		for(int i=0;i<statrans.size();i++) {
 //			System.out.println(statrans.get(i).getStartstatus()+"-----------"+statrans.get(i).getConstring()+"------------"+statrans.get(i).getEndstatus());
 //		}
@@ -478,41 +492,43 @@ public class getTable {
 			}
 		}
 
-		String[] tmpstaconvect=new String[staconvect.size()];
-		for(String str:staconvect.keySet()) {
-			tmpstaconvect[staconvect.get(str)]=str;
-		}
-		System.out.print("  \t ");
-		for(int i=0;i<tmpstaconvect.length;i++) {
-			System.out.print(tmpstaconvect[i]+" \t");
-		}
-		System.out.println("");
-		for(int k:status.keySet()) {
-			System.out.print(k+" \t");			
-			for(int i=0;i<staconvect.size();i++) 
-			{
-				if(i<existT.size())
-				System.out.print(table[k][i]+"\t");
-				else {
-					System.out.print(table[k][i]+" \t");	
-				}
-			}
-			System.out.println("  ");
-			}
-			
-		
-			
+//		String[] tmpstaconvect=new String[staconvect.size()];
+//		for(String str:staconvect.keySet()) {
+//			tmpstaconvect[staconvect.get(str)]=str;
+//		}
+//		System.out.print("  \t ");
+//		for(int i=0;i<tmpstaconvect.length;i++) {
+//			System.out.print(tmpstaconvect[i]+" \t");
+//		}
+//		System.out.println("");
+//		for(int k:status.keySet()) {
+//			System.out.print(k+" \t");			
+//			for(int i=0;i<staconvect.size();i++) 
+//			{
+//				if(i<existT.size())
+//				System.out.print(table[k][i]+"\t");
+//				else {
+//					System.out.print(table[k][i]+" \t");	
+//				}
+//			}
+//			System.out.println("  ");
+//			}
+//			
+//		
+//			
 		
 		
 	}
-	public int findGOlink(int start,String str) {
+	public int findGOlink(int start,String str)//由于之前将所有的跳转三元组存到了数组里。利用起始状态和输入的trans可以找到终止状态 
+	{
 		for(int i=0;i<statrans.size();i++) {
 			if(statrans.get(i).getStartstatus()==start&&statrans.get(i).getConstring().equals(str))
 				return statrans.get(i).getEndstatus();
 		}
 		return -1;
 	}
-	public void initstavect() {
+	public void initstavect() //初始化LR表。确定LR分析表的列数。按照读入的终结符、#、非终结符排列。对应的列用staconvect查找输入对应的T OR V 对应的LR表的列坐标
+{
 		int t=0;
 		for(int i=0;i<existT.size();i++) {
 			String str=existT.get(i);
@@ -542,66 +558,73 @@ public class getTable {
 		}
 		
 	}
-	public void stack_parser() throws IOException {
-		Stack<String> wstack=new Stack<String>();
-		Scanner in=new Scanner(System.in);
-		Stack<String> parser1=new Stack<String>();
-		Stack<Integer> parser2=new Stack<Integer>();
+	public String linktoc(int sortid)//将输入流中的token和number转化为C语言文法中的IDENTIFIER和CONSTANT;
+	{
+		String tmp=null;
+		switch(sortid) {
+		case 100:
+			tmp="IDENTIFIER";
+			break;
+		case 99:
+			tmp="CONSTANT";
+		}
+		return tmp;
+	}
+	public void stack_parsers() throws IOException {
+		Stack<Symbol> wstack=new Stack<Symbol>();
+		Stack<stack_node> parser_stack=new Stack<stack_node> ();
 		wordAnalyse tii=new wordAnalyse();
 		wstack=tii.get_wstack();
-		parser1.push("#");
-		parser2.push(0);
-		prints(parser2,parser1);
-		while(parser1.size()>0) {
-			String strtoken=null;
-			if(wstack.peek().equals("#")) 
-				strtoken="#";
+		stack_node initnode=new stack_node();
+		initnode.setStatuspro(0);
+		initnode.setToken(wstack.get(0));
+		initnode.setAttr(null);
+		parser_stack.push(initnode);
+		while(parser_stack.size()>0){
+			stack_node tmpnode=new stack_node();
+			String wtmpstore=null;
+			String tmpstr=null;
+			wtmpstore=wstack.peek().getName();
+			if(linktoc(wstack.peek().getType())==null)
+				wtmpstore=wstack.peek().getName();
 			else
-				strtoken=wstack.pop();
-			int  curstate=parser2.peek();
-			String lrinfo=table[curstate][staconvect.get(strtoken)];
-			
-			if(lrinfo.contains("S")) {
-				int getstate=Integer.parseInt(lrinfo.replaceAll("[^(0-9)]", ""));
-				System.out.print("--- w:"+strtoken+"    action["+curstate+"]["+strtoken+"]=" +lrinfo+" 移进状态"+getstate+"并输入符号"+strtoken);
-				parser1.push(strtoken);	
-				parser2.push(getstate);
-				}
-			if(lrinfo.contains("r")) {
-				System.out.print("--- w:"+strtoken+"    action["+curstate+"]["+strtoken+"]=" +lrinfo+"  按照第");
-				int getstate=Integer.parseInt(lrinfo.replaceAll("[^(0-9)]", ""));
-				for(int i=0;i<G.get(getstate).getRight().size();i++) {
-					parser1.pop();
-					parser2.pop();
-				}
-				System.out.print(getstate+"产生式: "+G.get(getstate).getLeft()+"->"+G.get(getstate).getRight()+"归约。");
-				parser1.push(G.get(getstate).getLeft());
-				prints(parser2,parser1);
-				getstate=parser2.peek();
-				int getstate2=Integer.parseInt(table[getstate][staconvect.get(parser1.peek())]);
-				System.out.print("goto["+getstate+"]["+parser1.peek()+"]="+getstate2+" ,将状态"+getstate2+"压入栈中");
-				parser2.push(getstate2);
-				if(!strtoken.equals("#"))
-				wstack.push(strtoken);
-			}
-			
-			if(lrinfo.equals("acc")) {
-				System.out.print("--- w:"+strtoken+"    action["+curstate+"]["+strtoken+"]=" +lrinfo+"接受！");
-				parser1.pop();
-				parser2.pop();
-				prints(parser2,parser1);
-				System.out.println("语法分析完成");
-				return;
-				}
-			if(lrinfo.equals("--"))
-				{
-				System.out.println(lrinfo+"0000000000000000000000000000000"+strtoken);
+				wtmpstore=linktoc(wstack.peek().getType());
+			int statuspro=parser_stack.peek().getStatuspro();
+			String statustoken=parser_stack.peek().getToken().getName();
+			tmpstr=table[statuspro][staconvect.get(wtmpstore)];
+			if(tmpstr.contains("S")) {
+				tmpstr = tmpstr.replaceAll("[a-zA-Z]","");  
+				tmpnode.setStatuspro(Integer.parseInt(tmpstr));
+				tmpnode.setToken(wstack.pop());
+				tmpnode.setAttr(null);
+				parser_stack.push(tmpnode);
 				continue;
+			}
+			else if(tmpstr.contains("r")) {
+				tmpstr = tmpstr.replaceAll("[a-zA-Z]",""); 
+				int Grightsize=G.get(Integer.parseInt(tmpstr)).getRight().size();
+				tmpstr=G.get(Integer.parseInt(tmpstr)).getLeft();
+				for(int i=0;i<Grightsize;i++) {
+					parser_stack.pop();
 				}
-			
-			
-			prints(parser2,parser1);
+				Grightsize=parser_stack.peek().getStatuspro();
+				String gototmpstr=table[Grightsize][staconvect.get(tmpstr)];
+				int nextstatuspro=Integer.parseInt(gototmpstr);
+				Symbol tmpsymbol=new Symbol();
+				tmpsymbol.setName(tmpstr);
+				tmpnode.setStatuspro(nextstatuspro);
+				tmpnode.setToken(tmpsymbol);
+				tmpnode.setAttr(null);
+				parser_stack.push(tmpnode);
+				continue;
+			}
+			else if(tmpstr.contains("acc")) {
+				System.out.println("规约完成！---------------------");
+				return;
+			}
 		}
+		return;
+	
 		
 	}
 	public void prints(Stack sta1,Stack sta2) {
@@ -617,6 +640,11 @@ public class getTable {
 			System.out.print(sta22.pop()+" ");
 		}
 	}
+
+	public void  stack_parser_analyse() {
+		
+		
+	}
 	public static void main(String[] args) throws IOException { 
 
 		 wordAnalyse TI=new wordAnalyse();
@@ -629,7 +657,9 @@ public class getTable {
 			ti.get_first();
 			ti.get_stauts();
 			ti.generateLR();
-			ti.stack_parser();
+			ti.stack_parsers();
+			ti.initfirst();
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

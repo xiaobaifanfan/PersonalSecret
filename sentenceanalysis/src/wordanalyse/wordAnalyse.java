@@ -9,22 +9,26 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Stack;
 import java.util.Vector;
 
 import mode.Grammer;
+import mode.Symbol;
+import mode.stack_node;
 
 public class wordAnalyse{
 	public String tmpstr=new String();
 	public int Propoint;
 	String procedure=new String();
 	int cleanprocedure=0;
+	public HashMap<String,Integer> symbol=new HashMap<String ,Integer>();
 	static String keywordTable[]= {"auto", "break", "case", "char", "const", "continue","default", "do", "double", "else", "enum", "extern",
 			"float", "for", "goto", "if", "int", "long", "register", "return", "short", "signed", "sizeof", "static",
 			"struct", "switch", "typedef", "union", "unsigned", "void", "while"};
 	static String operatorTable[]= {
 			"+", "-", "*", "/", "<", "<=", ">", ">=", "=", "==","!=", ";", "(", ")", "^", ",", "\"", "\'", "#", "&",
-			"&&", "|", "||", "%", "~", "<<", ">>", "[", "]", "{","}", "\\", ".", "?", ":", "!"};
+			"&&", "|", "||", "%", "~", "<<", ">>", "[", "]", "{","}", "\\", ".", "?", ":", "!","++","--"};
    static ArrayList<String> tokenTable=new ArrayList<String> ();
    public void read_procedure() throws IOException {
 	   BufferedReader reader = new BufferedReader(new FileReader("D:/avgscore.txt"));
@@ -147,16 +151,28 @@ public boolean IsDigit(String digit) {
 					e.printStackTrace();
 				}
 	    	}
-	    	else if(sortid>31&&sortid<68)
+	    	else if(sortid>31&&sortid<70)
 	    	{
-	    		//System.out.println(operatorTable[sortid-32]+"->½á·û");
-	    		try {
-	    			long fileLength = randomFile.length();
-	    			randomFile.seek(fileLength);
-					randomFile.writeBytes("( "+operatorTable[sortid-32]+" "+sortid+" )\r\n");
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+
+	    		if(sortid==68||sortid==69||sortid==42||sortid==41||sortid==52||sortid==54||sortid==37||sortid==39) {
+	    			try {
+		    			long fileLength = randomFile.length();
+		    			randomFile.seek(fileLength);
+						randomFile.writeBytes("( "+tmpstr+" "+sortid+" )\r\n");
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+	    		}else {
+	    			try {
+		    			long fileLength = randomFile.length();
+		    			randomFile.seek(fileLength);
+						randomFile.writeBytes("( "+operatorTable[sortid-32]+" "+sortid+" )\r\n");
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+	    		}
+	    		
+	    		
 	    	}
 	    	else if(sortid>0&&sortid<32)
 	    	{
@@ -213,7 +229,7 @@ public boolean IsDigit(String digit) {
 		   tmpstr=identifyword;
 		   return sortid;
 	   }
-	   else if(ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == ';' || ch == '(' || ch == ')' || ch == '^'
+	   else if( ch == '*' || ch == '/' || ch == ';' || ch == '(' || ch == ')' || ch == '^'
 			   || ch == ',' || ch == '\"' || ch == '\'' || ch == '~' || ch == '#' || ch == '%' || ch == '['
 			   || ch == ']' || ch == '{' || ch == '}' || ch == '\\' || ch == '.' || ch == '?' || ch == ':') 
 	   {
@@ -228,11 +244,40 @@ public boolean IsDigit(String digit) {
 		   Propoint++;
 		   return sortid;
 	   }
+	   else if(procedure.charAt(Propoint)=='+')
+	   {
+		   Propoint++;
+		   if(procedure.charAt(Propoint)=='+')
+		   {
+			   tmpstr="INC_OP";
+			   sortid=68;
+		   }else {
+			   Propoint--;
+			   sortid=32;
+		   }
+		   Propoint++;
+		   return sortid;
+	   }
+	   else if(procedure.charAt(Propoint)=='-')
+	   {
+		   Propoint++;
+		   if(procedure.charAt(Propoint)=='-')
+		   {
+			   tmpstr="DEC_OP";
+			   sortid=69;
+		   }else {
+			   Propoint--;
+			   sortid=33;
+		   }
+		   Propoint++;
+		   return sortid;
+	   }
 	   else if(procedure.charAt(Propoint)=='<')
 	   {
 		   Propoint++;
 		   if(procedure.charAt(Propoint)=='=') 
 		   {
+			  tmpstr="LE_OP";
 			   sortid=37;
 		   }else if(procedure.charAt(Propoint)=='<')
 		   {
@@ -250,6 +295,7 @@ public boolean IsDigit(String digit) {
 		   Propoint++;
 		   if(procedure.charAt(Propoint)=='=')
 		   {
+			   tmpstr="GE_OP";
 			   sortid=39;
 		   }else if(procedure.charAt(Propoint)=='>')
 		   {
@@ -267,6 +313,7 @@ public boolean IsDigit(String digit) {
 		  Propoint++;
 		  if(procedure.charAt(Propoint)=='=')
 		  {
+			  tmpstr="EQ_OP";
 			  sortid=41;
 		  }else
 		  {
@@ -281,6 +328,7 @@ public boolean IsDigit(String digit) {
 		   Propoint++;
 		   if(procedure.charAt(Propoint)=='=')
 		   {
+			   tmpstr="NE_OP";
 			   sortid=42;
 		   }else
 		   {
@@ -295,6 +343,7 @@ public boolean IsDigit(String digit) {
 		   Propoint++;
 		   if(procedure.charAt(Propoint)=='&')
 		   {
+			   tmpstr="AND_OP";
 			   sortid=52;
 		   }else
 		   {
@@ -309,6 +358,7 @@ public boolean IsDigit(String digit) {
 		   Propoint++;
 		   if(procedure.charAt(Propoint)=='|')
 		   {
+			   tmpstr="OR_OP";
 			   sortid=54;
 		   }else {
 			   Propoint--;
@@ -328,47 +378,34 @@ public boolean IsDigit(String digit) {
 	   }
 	   return sortid;
    }
-   public Stack<String> get_wstack() throws IOException{
-	 Stack wstack=new Stack<String>();
-	 ArrayList<String> warray=new ArrayList<String>();
+   public Stack<Symbol> get_wstack() throws IOException{
+	 Stack<Symbol> wstack=new Stack<Symbol>();
+	 ArrayList<Symbol> warray=new ArrayList<Symbol>();
 	 String filename="D:/changfan.txt";
 	 File file=new File(filename);
 	 BufferedReader bufread;
 	 String read=null;
 	 String left=null;
 	 String[] right=null;
-	 try {
 		bufread=new BufferedReader(new FileReader(file));
 		while((read=bufread.readLine())!=null)
 		{
+			Symbol symboltmp=new Symbol();
 			String[] tmp=read.trim().split(" ");
-			int sortnum=Integer.parseInt(tmp[2]);
-			switch(sortnum)
-			{
-			case 100:{
-				warray.add("IDENTIFIER");
-				continue;
+			symboltmp.setName(tmp[1]);
+			symboltmp.setType(Integer.parseInt(tmp[2]));
+			symboltmp.setOffset(0);
+			warray.add(symboltmp);
+			symbol.put(tmp[1], Integer.parseInt(tmp[2]));
 			}
-			case 99:{
-				warray.add("CONSTANT");
-				continue;
-			}
-			default :{
-				warray.add(tmp[1]);
-				continue;
-			}
-			}
-		}
-	} catch (FileNotFoundException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
+		
 		System.out.println(warray);
-		wstack.add("#");
+		Symbol symboltmp=new Symbol();
+		symboltmp.setName("#");
+		wstack.add(symboltmp);
 		for(int i=warray.size()-1;i>-1;i--)
 			wstack.push(warray.get(i));
-		System.out.println(wstack);
-		System.out.println(wstack.peek()+"---------------------------------------");
+		
 	 return wstack;
    }
 //   public static void main(String[] args) throws Exception  {
