@@ -3,7 +3,13 @@ package mode;
 public class ConstantAtri extends attribute{
 public int address;
 public String name;
-public String code;
+public int value;
+public int getValue() {
+	return value;
+}
+public void setValue(int value) {
+	this.value = value;
+}
 public int getAddress() {
 	return address;
 }
@@ -16,18 +22,12 @@ public String getName() {
 public void setName(String name) {
 	this.name = name;
 }
-public String getCode() {
-	return code;
-}
-public void setCode(String code) {
-	this.code = code;
-}
 public ConstantAtri() {
 }
-public ConstantAtri(int address,String name,String code)
+public ConstantAtri(int address,String name,int value)
 {
 	this.address=address;
-	this.code=code;
 	this.name=name;
+	this.value=value;
 }
 }

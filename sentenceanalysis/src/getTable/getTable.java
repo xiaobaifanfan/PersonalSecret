@@ -18,19 +18,30 @@ import java.util.Stack;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
+import mode.Eassign;
 import mode.Grammer;
 import mode.Project;
 import mode.StateTran;
 import mode.Symbol;
+import mode.attribute;
+import mode.delaration;
+import mode.newtemp;
 import mode.stack_node;
 import wordanalyse.wordAnalyse;
 
-public class getTable extends wordAnalyse{
+public class getTable {
+	 int tmp_count=0;
+	 int offset=0;
+	 int flag=0;
+	 String typestore=null;
+	 HashMap<String ,attribute> symbol=new HashMap<String ,attribute>();
 	 Vector<String> existV=new Vector<String>();//非终结符集合
 	 Vector<String>  existT=new Vector<String>();//终结符集合
 	 Vector<Grammer> G=new Vector<Grammer>();//存储产生式
-	 Vector<String> code=new Vector<String>();//生成的中间代码
+	  Vector<String> code=new Vector<String>();//生成的中间代码
 	 String[][] table;//LR分析表
+	 Stack<Symbol> wstack=new Stack<Symbol>();
+		Stack<stack_node> parser_stack=new Stack<stack_node> ();
 	 Vector<StateTran> statrans=new Vector<StateTran>();//状态转移三元组集合
 	 HashMap<String,Vector> first=new HashMap<String,Vector>();//first集。
 	 ConcurrentHashMap<Integer, ArrayList<Project>> status=new ConcurrentHashMap<Integer,ArrayList<Project>>();//状态集
@@ -427,7 +438,7 @@ public class getTable extends wordAnalyse{
 //						System.out.print("【 。】");
 //					System.out.println("----"+sucstr);
 //				}
-				System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
+				//System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
 //				
 		}
 //			
@@ -570,9 +581,9 @@ public class getTable extends wordAnalyse{
 		}
 		return tmp;
 	}
-	public void stack_parsers() throws IOException {
-		Stack<Symbol> wstack=new Stack<Symbol>();
-		Stack<stack_node> parser_stack=new Stack<stack_node> ();
+	public void stack_parsers() throws IOException//语义分析
+ {
+		
 		wordAnalyse tii=new wordAnalyse();
 		wstack=tii.get_wstack();
 		stack_node initnode=new stack_node();
@@ -581,6 +592,7 @@ public class getTable extends wordAnalyse{
 		initnode.setAttr(null);
 		parser_stack.push(initnode);
 		while(parser_stack.size()>0){
+			prints(parser_stack);
 			stack_node tmpnode=new stack_node();
 			String wtmpstore=null;
 			String tmpstr=null;
@@ -602,49 +614,398 @@ public class getTable extends wordAnalyse{
 			}
 			else if(tmpstr.contains("r")) {
 				tmpstr = tmpstr.replaceAll("[a-zA-Z]",""); 
-				int Grightsize=G.get(Integer.parseInt(tmpstr)).getRight().size();
-				tmpstr=G.get(Integer.parseInt(tmpstr)).getLeft();
+				int projectpro=Integer.parseInt(tmpstr);
+				int Grightsize=G.get(projectpro).getRight().size();
+				tmpstr=G.get(projectpro).getLeft();
+				Stack<stack_node> right_tmp=new Stack<stack_node>();
 				for(int i=0;i<Grightsize;i++) {
-					parser_stack.pop();
+					right_tmp.push(parser_stack.pop());
 				}
-				Grightsize=parser_stack.peek().getStatuspro();
-				String gototmpstr=table[Grightsize][staconvect.get(tmpstr)];
+				int last_statuspro=parser_stack.peek().getStatuspro();
+				String gototmpstr=table[last_statuspro][staconvect.get(tmpstr)];
 				int nextstatuspro=Integer.parseInt(gototmpstr);
 				Symbol tmpsymbol=new Symbol();
 				tmpsymbol.setName(tmpstr);
 				tmpnode.setStatuspro(nextstatuspro);
 				tmpnode.setToken(tmpsymbol);
 				tmpnode.setAttr(null);
+				tmpnode=semantic_subpro(projectpro,right_tmp,tmpnode);
 				parser_stack.push(tmpnode);
+				System.out.println("");
+				System.out.println(projectpro+"==================="+G.get(projectpro).getLeft()+"->"+G.get(projectpro).getRight());
 				continue;
 			}
 			else if(tmpstr.contains("acc")) {
 				System.out.println("规约完成！---------------------");
+				for(int i=0;i<code.size();i++)
+				{
+					System.out.println(code.get(i));
+				}
 				return;
 			}
+			
 		}
 		return;
 	
 		
 	}
-	public void prints(Stack sta1,Stack sta2) {
+	public stack_node semantic_subpro(int projectnumber,Stack<stack_node> stk,stack_node tmp) {
+		String tmpstr=new String();
+		wordAnalyse tmpwordana=new wordAnalyse();
+		switch(projectnumber) {
+		case  0:		/* start -> compound_statement */
+			  break;
+		     case  1:		/* compound_statement -> { } */
+			  break;
+		     case  2:		/* compound_statement -> { statement_list } */
+			  break;
+		     case  3:		/* compound_statement -> { declaration_list } */
+			  break;
+		     case  4:		/* compound_statement -> { declaration_list statement_list } */
+			  break;
+		     case  5:		/* declaration_list -> declaration */
+			  /* nothing */
+			  break;
+		     case  6:		/* declaration_list -> declaration_list declaration */
+			  /* nothing */
+		    	 break;
+		     case  7:		/* declaration -> type_specifier init_declarator ; */
+		    /* nothing */
+			  break;
+		     case  8:		/* type_specifier -> VOID */
+			  /* unused */
+			  break;
+		     case  9:		/* type_specifier -> CHAR */
+		    	 delaration attr9=new delaration();
+		    	 attr9.setAddr("char");
+		    	 attr9.setWidth(1);
+		    	 typestore="char 1";
+		    	 offset=offset+1;
+		    	 tmp.setAttr(attr9);
+			  break;
+		     case 10:		/* type_specifier -> SHORT */
+		    	 delaration attr10=new delaration();
+		    	 attr10.setAddr("char");
+		    	 attr10.setWidth(2);
+		    	 offset=offset+2;
+		    	 typestore="short 2";
+		    	 tmp.setAttr(attr10);
+			  break;
+		     case 11:		/* type_specifier -> INT */
+		    	 delaration attr11=new delaration();
+		    	 attr11.setAddr("int");
+		    	 attr11.setWidth(4);
+		    	 offset=offset+4;
+		    	 typestore="int 4";
+		    	 tmp.setAttr(attr11);
+			  break;
+		     case 12:		/* type_specifier -> LONG */
+		    	 delaration attr12=new delaration();
+		    	 attr12.setAddr("long");
+		    	 attr12.setWidth(4);
+		    	 offset=offset+4;
+		    	 typestore="long 4";
+		    	 tmp.setAttr(attr12);
+			  break;
+		     case 13:		/* type_specifier -> FLOAT */
+		    	 delaration attr13=new delaration();
+		    	 attr13.setAddr("float");
+		    	 attr13.setWidth(4);
+		    	 offset=offset+4;
+		    	 typestore="float 4";
+		    	 tmp.setAttr(attr13);
+			  break;
+		     case 14:		/* type_specifier -> DOUBLE */
+		    	 delaration attr14=new delaration();
+		    	 attr14.setAddr("double");
+		    	 attr14.setWidth(8);
+		    	 offset=offset+8;
+		    	 typestore="double 8";
+		    	 tmp.setAttr(attr14);
+			  break;
+		     case 15:		/* init_declarator -> IDENTIFIER */
+		    	 Eassign atrr15=new Eassign();
+		    	 atrr15.setAddr("IDENTIFIER");
+		    	 atrr15.setIdname(stk.get(0).getToken().getName());
+		    	 String[] ltype=typestore.split(" ");
+		    	 atrr15.setType(ltype[0]);
+		    	 atrr15.setWidth(Integer.parseInt(ltype[1]));
+		    	 atrr15.setOffset(offset-Integer.parseInt(ltype[1]));
+		    	 symbol.put(stk.get(0).getToken().getName(), atrr15);
+			  break;
+		     case 16:		/* init_declarator -> IDENTIFIER = assignment_expression */
+		    	 String name=stk.get(2).getToken().getName();
+		    	 if(symbol.get(name)!=null)
+		    	 {
+		    		 Eassign atrr16=(Eassign) symbol.get(stk.get(2).getToken().getName());
+			    	 newtemp atrr162=(newtemp)stk.get(0).getAttr();
+			         tmpstr=atrr16.getIdname()+"="+atrr162.getName();
+			         code.add(tmpstr);
+		    	 }else {
+		    		 Eassign atrr16=new Eassign();
+			    	 atrr16.setAddr("IDENTIFIER");
+			    	 atrr16.setIdname(name);
+			    	 String[] ltype1=typestore.split(" ");
+			    	 atrr16.setType(ltype1[0]);
+			    	 atrr16.setWidth(Integer.parseInt(ltype1[1]));
+			    	 atrr16.setOffset(offset-Integer.parseInt(ltype1[1]));
+			    	 symbol.put(name, atrr16);
+			    	 newtemp atrr162=(newtemp)stk.get(0).getAttr();
+			         tmpstr=atrr16.getIdname()+"="+atrr162.getName();
+			         code.add(tmpstr);
+		    	 }
+		    	 
+			  break;
+		     case 17:		/* statement_list -> statement */
+			  break;
+		     case 18:		/* statement_list -> statement_list statement */
+			  break;
+		     case 19:		/* statement -> compound_statement */
+			  break;
+		     case 20:		/* statement -> expression_statement */
+			  break;
+		     case 21:		/* statement -> selection_statement */
+			  break;
+		     case 22:		/* statement -> iteration_statement */
+			  break;
+		     case 23:		/* expression_statement -> ; */
+			  break;
+		     case 24:		/* expression_statement -> expression ; */
+			  break;
+		     case 25:		/* selection_statement -> IF ( expression ) statement */
+			  break;
+		     case 26:		/* selection_statement -> IF ( expression ) statement ELSE statement */
+			  break;
+		     case 27:		/* iteration_statement -> WHILE ( expression ) statement */
+			  break;
+		     case 28:		/* iteration_statement -> FOR ( expression_statement expression_statement expression ) statement */
+			  break;
+		     case 29:		/* primary_expression -> IDENTIFIER */
+		    	 String name29=stk.get(0).getToken().getName();
+		    	 if(symbol.get(name29)==null) {
+		    		 System.out.println("error!"+name29+"didn't defined!!!");
+		    	 }else {
+		    		 newtemp atrr29=new newtemp();
+		    		 atrr29.setName(name29);
+		    		 tmp.setAttr(atrr29);
+		    	 }
+			  break;
+		     case 30:		/* primary_expression -> CONSTANT */
+		    	 newtemp atrr30=new newtemp();
+		    	 atrr30.setName(stk.get(0).getToken().getName());
+		    	 tmp.setAttr(atrr30);
+			  break;
+		     case 31:		/* primary_expression -> STRING_LITERAL */
+			  break;
+		     case 32:		/* primary_expression -> ( expression ) */
+			  break;
+		     case 33:		/* postfix_expression -> primary_expression */
+		    	 tmp.setAttr(stk.get(0).getAttr());
+			  break;
+		     case 34:		/* postfix_expression -> postfix_expression INC_OP */
+		    	 newtemp atrr34=new newtemp();
+		    	 atrr34.setName("t"+tmp_count);
+		    	 newtemp tmp24=(newtemp)stk.get(1).getAttr();
+		    	 tmpstr=atrr34.getName()+"="+tmp24.getName()+"+1";
+		    	 code.add(tmpstr);
+		    	 tmp.setAttr(atrr34);
+		    	 tmp_count++;
+		    	
+			  break;
+		     case 35:		/* postfix_expression -> postfix_expression DEC_OP */
+		    	 newtemp atrr35=new newtemp();
+		    	 atrr35.setName("t"+tmp_count);
+		    	 newtemp tmp25=(newtemp)stk.get(1).getAttr();
+		    	 tmpstr=atrr35.getName()+"="+tmp25.getName()+"-1";
+		    	 code.add(tmpstr);
+		    	 tmp.setAttr(atrr35);
+		    	 tmp_count++;
+			  break;
+		     case 36:		/* unary_expression -> postfix_expression */
+		    	 tmp.setAttr(stk.get(0).getAttr());
+			  break;
+		     case 37:		/* unary_expression -> INC_OP unary_expression */
+		    	 newtemp atrr37=new newtemp();
+		    	 atrr37.setName("t"+tmp_count);
+		    	 newtemp tmp23=(newtemp)stk.get(0).getAttr();
+		    	 tmpstr=atrr37.getName()+"="+tmp23.getName()+"+1";
+		    	 code.add(tmpstr);
+		    	 tmp.setAttr(atrr37);
+		    	 tmp_count++;
+			  break;
+		     case 38:		/* unary_expression -> DEC_OP unary_expression */
+		    	 newtemp atrr38=new newtemp();
+		    	 newtemp tmp13=(newtemp)stk.get(0).getAttr();
+		    	 atrr38.setName("t"+tmp_count);
+		    	 tmpstr="t"+tmp_count+"="+tmp13.getName()+"-1";
+		    	 code.add(tmpstr);
+		    	 tmp_count++;
+		    	 tmp.setAttr(atrr38);
+		    	 break;
+		     case 39:		/* unary_expression -> unary_operator unary_expression */
+		    	 newtemp atrr39=new newtemp();
+		    	 newtemp tmp11=(newtemp)stk.get(0).getAttr();
+		    	 newtemp tmp12=(newtemp)stk.get(1).getAttr();
+		    	 atrr39.setName("t"+tmp_count);
+		    	 tmpstr="t"+tmp_count+"="+tmp12.getName()+tmp11.getName();
+		    	 code.add(tmpstr);
+		    	 tmp.setAttr(atrr39);
+		    	 tmp_count++;
+		    	 flag=1;
+		    	 
+		    	 break;
+		     case 40:		/* unary_operator -> + */
+		    	newtemp atrr40=new newtemp();
+		    	atrr40.setName("+");
+		    	tmp.setAttr(atrr40);
+			  break;
+		     case 41:		/* unary_operator -> - */
+		    	newtemp atrr41=new newtemp();
+		    	atrr41.setName("-");
+		    	tmp.setAttr(atrr41);
+			  break;
+		     case 42:		/* unary_operator -> ! */
+		    	 newtemp atrr42=new newtemp();
+			    	atrr42.setName("!");
+			    	tmp.setAttr(atrr42);
+			  break;
+		     case 43:		/* multiplicative_expression -> unary_expression */
+		    	 tmp.setAttr(stk.get(0).getAttr());
+			  break;
+		     case 44:		/* multiplicative_expression -> multiplicative_expression * unary_expression */
+		    	 newtemp atrr44=new newtemp();
+		    	 atrr44.setName("t"+tmp_count);
+		    	 tmp.setAttr(atrr44);
+		    	 tmpstr="t"+tmp_count+"=";
+		    	 newtemp tmp1=(newtemp) stk.get(0).getAttr();
+		    	 newtemp tmp2=(newtemp) stk.get(2).getAttr();
+		    	 tmpstr=tmpstr+tmp2.getName()+"*"+tmp1.getName();
+		    	 code.add(tmpstr);
+		    	 tmp_count++;
+		    	 
+			  break;
+		     case 45:		/* multiplicative_expression -> multiplicative_expression / unary_expression */
+		    	 newtemp atrr45=new newtemp();
+		    	 atrr45.setName("t"+tmp_count);
+		    	 tmp.setAttr(atrr45);
+		    	 tmpstr="t"+tmp_count+"=";
+		    	 newtemp tmp3=(newtemp) stk.get(0).getAttr();
+		    	 newtemp tmp4=(newtemp) stk.get(2).getAttr();
+		    	 tmpstr=tmpstr+tmp4.getName()+"/"+tmp3.getName();
+		    	 code.add(tmpstr);
+		    	 tmp_count++;
+			  break;
+		     case 46:		/* multiplicative_expression -> multiplicative_expression % unary_expression */
+		    	 newtemp atrr46=new newtemp();
+		    	 atrr46.setName("t"+tmp_count);
+		    	 tmp.setAttr(atrr46);
+		    	 tmpstr="t"+tmp_count+"=";
+		    	 newtemp tmp5=(newtemp) stk.get(0).getAttr();
+		    	 newtemp tmp6=(newtemp) stk.get(2).getAttr();
+		    	 tmpstr=tmpstr+tmp6.getName()+"%"+tmp5.getName();
+		    	 code.add(tmpstr);
+		    	 tmp_count++;
+			  break;
+		     case 47:		/* additive_expression -> multiplicative_expression */
+		    	 tmp.setAttr(stk.get(0).getAttr());
+			  break;
+		     case 48:		/* additive_expression -> additive_expression + multiplicative_expression */
+		    	 newtemp atrr48=new newtemp();
+		    	 atrr48.setName("t"+tmp_count);
+		    	 tmp.setAttr(atrr48);
+		    	 tmpstr="t"+tmp_count+"=";
+		    	 newtemp tmp7=(newtemp) stk.get(0).getAttr();
+		    	 newtemp tmp8=(newtemp) stk.get(2).getAttr();
+		    	 tmpstr=tmpstr+tmp8.getName()+"+"+tmp7.getName();
+		    	 code.add(tmpstr);
+		    	 tmp_count++;
+			  break;
+		     case 49:		/* additive_expression -> additive_expression - multiplicative_expression */
+		    	 newtemp atrr49=new newtemp();
+		    	 atrr49.setName("t"+tmp_count);
+		    	 tmp.setAttr(atrr49);
+		    	 tmpstr="t"+tmp_count+"=";
+		    	 newtemp tmp9=(newtemp) stk.get(0).getAttr();
+		    	 newtemp tmp10=(newtemp) stk.get(2).getAttr();
+		    	 tmpstr=tmpstr+tmp10.getName()+"-"+tmp9.getName();
+		    	 code.add(tmpstr);
+		    	 tmp_count++;
+		    	 
+			  break;
+		     case 50:		/* relational_expression -> additive_expression */
+		    	 tmp.setAttr(stk.get(0).getAttr());
+			  break;
+		     case 51:		/* relational_expression -> relational_expression < additive_expression */
+			  break;
+		     case 52:		/* relational_expression -> relational_expression > additive_expression */
+			  break;
+		     case 53:		/* relational_expression -> relational_expression LE_OP additive_expression */
+			  break;
+		     case 54:		/* relational_expression -> relational_expression GE_OP additive_expression */
+			  break;
+		     case 55:		/* equality_expression -> relational_expression */
+		    	 tmp.setAttr(stk.get(0).getAttr());
+			  break;
+		     case 56:		/* equality_expression -> equality_expression EQ_OP relational_expression */
+			  break;
+		     case 57:		/* equality_expression -> equality_expression NE_OP relational_expression */
+			  break;
+		     case 58:		/* logical_and_expression -> equality_expression */
+		    	 tmp.setAttr(stk.get(0).getAttr());
+			  break;
+		     case 59:		/* logical_and_expression -> logical_and_expression AND_OP equality_expression */
+			  break;
+		     case 60:		/* logical_or_expression -> logical_and_expression */
+		    	 tmp.setAttr(stk.get(0).getAttr());
+			  break;
+		     case 61:		/* logical_or_expression -> logical_or_expression OR_OP logical_and_expression */
+			  break;
+		     case 62:		/* assignment_expression -> logical_or_expression */
+		    	 tmp.setAttr(stk.get(0).getAttr());
+			  break;
+		     case 63:		/* assignment_expression -> unary_expression = assignment_expression */
+		    	 if(flag==0) {
+		    		 tmp.setAttr(stk.get(0).getAttr());
+			    	 newtemp tmp20=(newtemp)stk.get(0).getAttr();
+			    	 newtemp tmp21=(newtemp)stk.get(2).getAttr();
+			    	 tmpstr=tmp21.getName()+"="+tmp20.getName();
+			    	 code.add(tmpstr);
+		    	 }else{
+		    		 tmp.setAttr(stk.get(0).getAttr());
+			    	 newtemp tmp20=(newtemp)stk.get(0).getAttr();
+			    	 newtemp tmp21=(newtemp)stk.get(2).getAttr();
+			    	 tmpstr=tmp21.getName()+"="+tmp20.getName();
+			    	 flag=0;
+			    	 code.add(tmpstr);
+		    	 }
+		    	 ;
+			  break;
+		     case 64:		/* expression -> assignment_expression */
+			  break;
+		     case 65:		/* expression -> expression , assignment_expression */
+			  break;
+		}
+		return tmp;
+	}
+	public void prints(Stack<stack_node> stk) //打印分析栈的信息。
+	{
+		System.out.println("");
 		Stack sta11=new Stack();
 		Stack sta22=new Stack();
-		sta11=(Stack) sta1.clone();
-		sta22=(Stack) sta2.clone();
+		sta11=(Stack) stk.clone();
+		sta22=(Stack) stk.clone();
 		System.out.println("");
 		while(!sta11.empty()) {
-			System.out.print(sta11.pop()+" ");
+			stack_node tmpnode=(stack_node) sta11.pop();
+			System.out.print(tmpnode.getStatuspro()+" ");
 		}
-		while(!sta22.isEmpty()) {
-			System.out.print(sta22.pop()+" ");
+		System.out.println("");
+		while(!sta22.empty()) {
+			stack_node tmpnode=(stack_node) sta22.pop();
+			System.out.print(tmpnode.getToken().getName()+" ");
 		}
 	}
 
-	public void  stack_parser_analyse() {
-		
-		
-	}
 	public static void main(String[] args) throws IOException { 
 
 		 wordAnalyse TI=new wordAnalyse();
@@ -658,14 +1019,15 @@ public class getTable extends wordAnalyse{
 			ti.get_stauts();
 			ti.generateLR();
 			ti.stack_parsers();
+			int mm=0;
 			ti.initfirst();
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 		
+	
 
 		 
 	 }
