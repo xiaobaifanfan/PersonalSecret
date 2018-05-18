@@ -787,57 +787,56 @@ public class getTable {
 		    	tmp.setAttr(stk.get(1).getAttr());
 			  break;
 		     case 25:		/* selection_statement -> IF ( expression ) statement */
-		    	// newtemp atrr25=new newtemp();
 		    	 newtemp temp35=(newtemp)stk.get(2).getAttr();
 		    	 newtemp temp38=(newtemp) stk.get(0).getAttr();
 		    	 int truelist=findtruelist(temp38.getName());
-		    	 tmpstr="if "+temp35.getName()+"  goto:"+code.size();
+		    	 tmpstr="if "+temp35.getName()+"  goto: "+code.size();
 		    	 code.add(truelist, tmpstr);
-//		    	 atrr25.setName(tmpstr);
-//		    	 tmp.setAttr(atrr25);
 		    	 int tmpnum=code.size()+1;
-		    	 tmpstr="goto:"+tmpnum;
+		    	 tmpstr="goto: "+tmpnum;
 		    	 code.add(truelist+1,tmpstr);
-		    	 jmpL++;
-		    	 
-		    	
 			  break;
 		     case 26:		/* selection_statement -> IF ( expression ) statement ELSE statement */
 		    	 newtemp temp39=(newtemp)stk.get(0).getAttr();
 		    	 newtemp temp40=(newtemp)stk.get(2).getAttr();
 		    	 newtemp temp41=(newtemp)stk.get(4).getAttr();
 		    	 int turelist26=findtruelist(temp40.getName());
-		    	 tmpstr="if "+temp41.getName()+"  goto:"+(turelist26+2);
+		    	 tmpstr="if "+temp41.getName()+"  goto: "+(turelist26+2);
 		    	 code.add(turelist26, tmpstr);
 		    	 int falselist26=findtruelist(temp39.getName());
-		    	 tmpstr="goto:"+(falselist26+2);
+		    	 tmpstr="goto: "+(falselist26+2);
 		    	 code.add(turelist26+1,tmpstr);
 		    	 int falselist262=findtruelist(temp39.getName());
-		    	 code.add(falselist262,"goto:"+(code.size()+1));
-		    	 jmpL++;
+		    	 code.add(falselist262,"goto: "+(code.size()+1));
 			  break;
 		     case 27:		/* iteration_statement -> WHILE ( expression ) statement */
 		    	 newtemp attr27=new newtemp();
 		    	 newtemp temp44=(newtemp) stk.get(0).getAttr();
 		    	 newtemp temp45=(newtemp) stk.get(2).getAttr();
 		    	 int turelist27=findtruelist(temp44.getName());
-		    	 tmpstr="if "+temp44.getName()+" goto: "+(turelist27+2);
-		    	 int numstore=turelist27;
+		    	 tmpstr="if "+temp45.getName()+" goto: "+(turelist27+2);
+//		    	 String succen27=tmpstr;
 		    	 code.add(turelist27,tmpstr);
 		    	 tmpstr="goto: "+(code.size()+2);
 		    	 code.add(turelist27+1,tmpstr);
-		    	 code.add("goto: "+turelist27);
+		    	 code.add("goto: "+findtruelist(temp45.getName()));
+//		    	 succen27=succen27+"@"+(code.size()-2);
+//		    	 backpatch(succen27);
 			  break;
 		     case 28:		/* iteration_statement -> FOR ( expression_statement expression_statement expression ) statement */
 		    	 newtemp temp50=(newtemp) stk.get(0).getAttr();
 		    	 newtemp temp51=(newtemp) stk.get(2).getAttr();
 		    	 newtemp temp52=(newtemp) stk.get(3).getAttr();
 		    	 int truelist53=findtruelist(temp52.getName());
+		    	 String succenlast="";
 		    	 tmpstr="if "+temp52.getName()+" goto: "+(truelist53+3);
+		    	 succenlast=succenlast+tmpstr+"@";
 		    	 code.add(truelist53+1,tmpstr);
-		    	 tmpstr="goto: "+(code.size()+2);
+		    	 tmpstr="goto: "+code.size();
 		    	 code.add(truelist53+2,tmpstr);
 		    	 code.add("goto: "+truelist53);
+		    	 succenlast=succenlast+(code.size()-2);
+		    	 backpatch(succenlast);
 		    	 //tmpstr="goto: "+(code.size()+2);
 		    	 //code.add(tmpstr);
 		    	 
@@ -1090,6 +1089,23 @@ public class getTable {
 			  break;
 		}
 		return tmp;
+	}
+	public void backpatch(String ss) {
+		String[ ] tmp=ss.split("@");
+		ss=tmp[0];
+		int lastfixline=Integer.parseInt(tmp[1]);
+		int startfixline=0;
+		startfixline=code.indexOf(ss);
+		for(int i=startfixline+1;i<=lastfixline;i++)
+		{
+			ss=code.get(i);
+			if(ss.contains("goto: ")) {
+				tmp=ss.split("goto: ");
+				int len=Integer.parseInt(tmp[1])+2;
+				code.set(i,tmp[0]+"goto: "+len);
+			}
+		}
+		return;
 	}
 	public void prints(Stack<stack_node> stk) //打印分析栈的信息。
 	{
