@@ -787,15 +787,19 @@ public class getTable {
 		    	tmp.setAttr(stk.get(1).getAttr());
 			  break;
 		     case 25:		/* selection_statement -> IF ( expression ) statement */
+		    	// newtemp atrr25=new newtemp();
 		    	 newtemp temp35=(newtemp)stk.get(2).getAttr();
 		    	 newtemp temp38=(newtemp) stk.get(0).getAttr();
 		    	 int truelist=findtruelist(temp38.getName());
 		    	 tmpstr="if "+temp35.getName()+"  goto:"+code.size();
 		    	 code.add(truelist, tmpstr);
+//		    	 atrr25.setName(tmpstr);
+//		    	 tmp.setAttr(atrr25);
 		    	 int tmpnum=code.size()+1;
 		    	 tmpstr="goto:"+tmpnum;
 		    	 code.add(truelist+1,tmpstr);
 		    	 jmpL++;
+		    	 
 		    	
 			  break;
 		     case 26:		/* selection_statement -> IF ( expression ) statement ELSE statement */
@@ -810,12 +814,33 @@ public class getTable {
 		    	 code.add(turelist26+1,tmpstr);
 		    	 int falselist262=findtruelist(temp39.getName());
 		    	 code.add(falselist262,"goto:"+(code.size()+1));
-		    	 
 		    	 jmpL++;
 			  break;
 		     case 27:		/* iteration_statement -> WHILE ( expression ) statement */
+		    	 newtemp attr27=new newtemp();
+		    	 newtemp temp44=(newtemp) stk.get(0).getAttr();
+		    	 newtemp temp45=(newtemp) stk.get(2).getAttr();
+		    	 int turelist27=findtruelist(temp44.getName());
+		    	 tmpstr="if "+temp44.getName()+" goto: "+(turelist27+2);
+		    	 int numstore=turelist27;
+		    	 code.add(turelist27,tmpstr);
+		    	 tmpstr="goto: "+(code.size()+2);
+		    	 code.add(turelist27+1,tmpstr);
+		    	 code.add("goto: "+turelist27);
 			  break;
 		     case 28:		/* iteration_statement -> FOR ( expression_statement expression_statement expression ) statement */
+		    	 newtemp temp50=(newtemp) stk.get(0).getAttr();
+		    	 newtemp temp51=(newtemp) stk.get(2).getAttr();
+		    	 newtemp temp52=(newtemp) stk.get(3).getAttr();
+		    	 int truelist53=findtruelist(temp52.getName());
+		    	 tmpstr="if "+temp52.getName()+" goto: "+(truelist53+3);
+		    	 code.add(truelist53+1,tmpstr);
+		    	 tmpstr="goto: "+(code.size()+2);
+		    	 code.add(truelist53+2,tmpstr);
+		    	 code.add("goto: "+truelist53);
+		    	 //tmpstr="goto: "+(code.size()+2);
+		    	 //code.add(tmpstr);
+		    	 
 			  break;
 		     case 29:		/* primary_expression -> IDENTIFIER */
 		    	 String name29=stk.get(0).getToken().getName();
@@ -851,6 +876,8 @@ public class getTable {
 		    	 newtemp tmp24=(newtemp)stk.get(1).getAttr();
 		    	 tmpstr=atrr34.getName()+"="+tmp24.getName()+"+1";
 		    	 code.add(tmpstr);
+		    	 tmpstr=tmp24.getName()+"="+"t"+tmp_count;
+		    	 code.add(tmpstr);
 		    	 tmp.setAttr(atrr34);
 		    	 tmp_count++;
 		    	
@@ -860,6 +887,8 @@ public class getTable {
 		    	 atrr35.setName("t"+tmp_count);
 		    	 newtemp tmp25=(newtemp)stk.get(1).getAttr();
 		    	 tmpstr=atrr35.getName()+"="+tmp25.getName()+"-1";
+		    	 code.add(tmpstr);
+		    	 tmpstr=tmp25.getName()+"="+"t"+tmp_count;
 		    	 code.add(tmpstr);
 		    	 tmp.setAttr(atrr35);
 		    	 tmp_count++;
@@ -873,6 +902,8 @@ public class getTable {
 		    	 newtemp tmp23=(newtemp)stk.get(0).getAttr();
 		    	 tmpstr=atrr37.getName()+"="+tmp23.getName()+"+1";
 		    	 code.add(tmpstr);
+		    	 tmpstr=tmp23.getName()+"="+"t"+tmp_count;
+		    	 code.add(tmpstr);
 		    	 tmp.setAttr(atrr37);
 		    	 tmp_count++;
 			  break;
@@ -881,6 +912,8 @@ public class getTable {
 		    	 newtemp tmp13=(newtemp)stk.get(0).getAttr();
 		    	 atrr38.setName("t"+tmp_count);
 		    	 tmpstr="t"+tmp_count+"="+tmp13.getName()+"-1";
+		    	 code.add(tmpstr);
+		    	 tmpstr=tmp13.getName()+"="+"t"+tmp_count;
 		    	 code.add(tmpstr);
 		    	 tmp_count++;
 		    	 tmp.setAttr(atrr38);
@@ -1013,6 +1046,14 @@ public class getTable {
 		    	 tmp.setAttr(stk.get(0).getAttr());
 			  break;
 		     case 59:		/* logical_and_expression -> logical_and_expression AND_OP equality_expression */
+		    	 newtemp atrr59=new newtemp();
+		    	 newtemp tmp55=(newtemp)stk.get(0).getAttr();
+		    	 newtemp tmp56=(newtemp)stk.get(2).getAttr();
+		    	 tmpstr="t"+tmp_count+"="+tmp55.getName()+" and "+tmp56.getName();
+		    	 code.add(tmpstr);
+		    	atrr59.setName("t"+tmp_count);
+		    	 tmp.setAttr(atrr59);
+		    	 tmp_count++;
 			  break;
 		     case 60:		/* logical_or_expression -> logical_and_expression */
 		    	 tmp.setAttr(stk.get(0).getAttr());
