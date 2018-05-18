@@ -418,7 +418,7 @@ public class getTable {
 		System.out.println(statrans.size());
 		
 		for(int sta:status.keySet()) {
-			System.out.println("states:"+sta+"如下："+"---------------"+status.get(sta).size());
+//			System.out.println("states:"+sta+"如下："+"---------------"+status.get(sta).size());
 //			int tempnum=0;
 			for(Project pro:status.get(sta)) {
 //				for(String sucstr:pro.getSuccessors())
@@ -438,8 +438,8 @@ public class getTable {
 //						System.out.print("【 。】");
 //					System.out.println("----"+sucstr);
 //				}
-				//System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
-//				
+//				System.out.println(G.get(pro.getPro_num()).getLeft()+"----"+G.get(pro.getPro_num()).getRight()+"小数点位置："+pro.getDot_positon()+"------"+pro.getSuccessors());
+				
 		}
 //			
 		}
@@ -503,30 +503,30 @@ public class getTable {
 			}
 		}
 
-//		String[] tmpstaconvect=new String[staconvect.size()];
-//		for(String str:staconvect.keySet()) {
-//			tmpstaconvect[staconvect.get(str)]=str;
-//		}
-//		System.out.print("  \t ");
-//		for(int i=0;i<tmpstaconvect.length;i++) {
-//			System.out.print(tmpstaconvect[i]+" \t");
-//		}
-//		System.out.println("");
-//		for(int k:status.keySet()) {
-//			System.out.print(k+" \t");			
-//			for(int i=0;i<staconvect.size();i++) 
-//			{
-//				if(i<existT.size())
-//				System.out.print(table[k][i]+"\t");
-//				else {
-//					System.out.print(table[k][i]+" \t");	
-//				}
-//			}
-//			System.out.println("  ");
-//			}
-//			
-//		
-//			
+		String[] tmpstaconvect=new String[staconvect.size()];
+		for(String str:staconvect.keySet()) {
+			tmpstaconvect[staconvect.get(str)]=str;
+		}
+		System.out.print("  \t ");
+		for(int i=0;i<tmpstaconvect.length;i++) {
+			System.out.print(tmpstaconvect[i]+" \t");
+		}
+		System.out.println("");
+		for(int k:status.keySet()) {
+			System.out.print(k+" \t");			
+			for(int i=0;i<staconvect.size();i++) 
+			{
+				if(i<existT.size())
+				System.out.print(table[k][i]+"\t");
+				else {
+					System.out.print(table[k][i]+" \t");	
+				}
+			}
+			System.out.println("  ");
+			}
+			
+		
+			
 		
 		
 	}
@@ -658,6 +658,7 @@ public class getTable {
 		     case  1:		/* compound_statement -> { } */
 			  break;
 		     case  2:		/* compound_statement -> { statement_list } */
+		    	 tmp.setAttr(stk.get(1).getAttr());
 			  break;
 		     case  3:		/* compound_statement -> { declaration_list } */
 			  break;
@@ -757,12 +758,15 @@ public class getTable {
 		    	 
 			  break;
 		     case 17:		/* statement_list -> statement */
+		    	 tmp.setAttr(stk.get(0).getAttr());
 			  break;
 		     case 18:		/* statement_list -> statement_list statement */
 			  break;
 		     case 19:		/* statement -> compound_statement */
+		    	 tmp.setAttr(stk.get(0).getAttr());
 			  break;
 		     case 20:		/* statement -> expression_statement */
+		    	 tmp.setAttr(stk.get(0).getAttr());
 			  break;
 		     case 21:		/* statement -> selection_statement */
 			  break;
@@ -771,10 +775,16 @@ public class getTable {
 		     case 23:		/* expression_statement -> ; */
 			  break;
 		     case 24:		/* expression_statement -> expression ; */
+		    	tmp.setAttr(stk.get(1).getAttr());
 			  break;
 		     case 25:		/* selection_statement -> IF ( expression ) statement */
+		    	 newtemp temp35=(newtemp)stk.get(2).getAttr();
+		    	tmpstr="if "+temp35.getName()+"  goto:--";
+		    	code.add(tmpstr);
 			  break;
 		     case 26:		/* selection_statement -> IF ( expression ) statement ELSE statement */
+		    	 int a1=1;
+		    	 int c1=3+2;
 			  break;
 		     case 27:		/* iteration_statement -> WHILE ( expression ) statement */
 			  break;
@@ -936,6 +946,11 @@ public class getTable {
 		    	 tmp.setAttr(stk.get(0).getAttr());
 			  break;
 		     case 51:		/* relational_expression -> relational_expression < additive_expression */
+		    	 newtemp atrr51=new newtemp();
+		    	 newtemp tmp30=(newtemp) stk.get(2).getAttr();
+		    	 newtemp tmp31=(newtemp) stk.get(0).getAttr();
+		    	 atrr51.setName(tmp30.getName()+stk.get(1).getToken().getName()+tmp31.getName());
+		    	 tmp.setAttr(atrr51);
 			  break;
 		     case 52:		/* relational_expression -> relational_expression > additive_expression */
 			  break;
@@ -981,6 +996,10 @@ public class getTable {
 		    	 ;
 			  break;
 		     case 64:		/* expression -> assignment_expression */
+		    	 newtemp atrr64=new newtemp();
+		    	 newtemp temp33=(newtemp) stk.get(0).getAttr();
+		    	 atrr64.setName(temp33.getName());
+		    	 tmp.setAttr(atrr64);
 			  break;
 		     case 65:		/* expression -> expression , assignment_expression */
 			  break;
