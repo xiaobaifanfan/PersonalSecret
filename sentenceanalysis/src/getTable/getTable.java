@@ -640,7 +640,7 @@ public class getTable {
 				System.out.println("规约完成！---------------------");
 				for(int i=0;i<code.size();i++)
 				{
-					System.out.println(code.get(i));
+					System.out.println(i+" "+code.get(i));
 				}
 				return;
 			}
@@ -790,13 +790,10 @@ public class getTable {
 		    	 newtemp temp35=(newtemp)stk.get(2).getAttr();
 		    	 newtemp temp38=(newtemp) stk.get(0).getAttr();
 		    	 int truelist=findtruelist(temp38.getName());
-		    	 tmpstr="L"+jmpL+"true:"+code.get(truelist);
-		    	 code.set(truelist,tmpstr);
-		    	 tmpstr="L"+jmpL+" :if "+temp35.getName()+"  goto:L"+jmpL+"true";
+		    	 tmpstr="if "+temp35.getName()+"  goto:"+code.size();
 		    	 code.add(truelist, tmpstr);
-		    	 tmpstr="L"+jmpL+"end";
-		    	 code.add(tmpstr);
-		    	 tmpstr="goto:L"+jmpL+"end";
+		    	 int tmpnum=code.size()+1;
+		    	 tmpstr="goto:"+tmpnum;
 		    	 code.add(truelist+1,tmpstr);
 		    	 jmpL++;
 		    	
@@ -806,20 +803,14 @@ public class getTable {
 		    	 newtemp temp40=(newtemp)stk.get(2).getAttr();
 		    	 newtemp temp41=(newtemp)stk.get(4).getAttr();
 		    	 int turelist26=findtruelist(temp40.getName());
-		    	 tmpstr="L"+jmpL+"true:"+code.get(turelist26);
-		    	 code.set(turelist26,tmpstr);
-		    	 tmpstr="L"+jmpL+" :if "+temp41.getName()+"  goto:L"+jmpL+"true";
+		    	 tmpstr="if "+temp41.getName()+"  goto:"+(turelist26+2);
 		    	 code.add(turelist26, tmpstr);
-		    	 tmpstr="goto :L"+jmpL+"false";
-		    	 code.add(turelist26+1, tmpstr);
 		    	 int falselist26=findtruelist(temp39.getName());
-		    	 tmpstr="L"+jmpL+"false: "+code.get(falselist26);
-		    	 code.set(falselist26,tmpstr);
-		    	 code.add("goto : L"+jmpL+"end");
-		    	 tmpstr="L"+jmpL+"end";
-		    	 code.add(tmpstr);
-		    	 turelist26=findtruelist("L"+jmpL+"false:");
-		    	 code.add(turelist26, "goto : L"+jmpL+"end");
+		    	 tmpstr="goto:"+(falselist26+2);
+		    	 code.add(turelist26+1,tmpstr);
+		    	 int falselist262=findtruelist(temp39.getName());
+		    	 code.add(falselist262,"goto:"+(code.size()+1));
+		    	 
 		    	 jmpL++;
 			  break;
 		     case 27:		/* iteration_statement -> WHILE ( expression ) statement */
@@ -840,6 +831,12 @@ public class getTable {
 		    	 newtemp atrr30=new newtemp();
 		    	 atrr30.setName(stk.get(0).getToken().getName());
 		    	 tmp.setAttr(atrr30);
+//		    	 newtemp atrr30=new newtemp();
+//		    	 tmpstr="t"+tmp_count+"="+stk.get(0).getToken().getName();
+//		    	 code.add(tmpstr);
+//		    	 atrr30.setName("t"+tmp_count);
+//		    	 tmp.setAttr(atrr30);
+//		    	 tmp_count++;
 			  break;
 		     case 31:		/* primary_expression -> STRING_LITERAL */
 			  break;
@@ -985,15 +982,21 @@ public class getTable {
 		    	 newtemp atrr51=new newtemp();
 		    	 newtemp tmp30=(newtemp) stk.get(2).getAttr();
 		    	 newtemp tmp31=(newtemp) stk.get(0).getAttr();
-		    	 atrr51.setName(tmp30.getName()+stk.get(1).getToken().getName()+tmp31.getName());
+		    	 tmpstr="t"+tmp_count+"="+tmp30.getName()+stk.get(1).getToken().getName()+tmp31.getName();
+		    	 code.add(tmpstr);
+		    	 atrr51.setName("t"+tmp_count);
 		    	 tmp.setAttr(atrr51);
+		    	 tmp_count++;
 			  break;
 		     case 52:		/* relational_expression -> relational_expression > additive_expression */
 		    	 newtemp atrr52=new newtemp();
 		    	 newtemp tmp36=(newtemp) stk.get(2).getAttr();
 		    	 newtemp tmp37=(newtemp) stk.get(0).getAttr();
-		    	 atrr52.setName(tmp36.getName()+stk.get(1).getToken().getName()+tmp37.getName());
+		    	 tmpstr="t"+tmp_count+"="+tmp36.getName()+stk.get(1).getToken().getName()+tmp37.getName();
+		    	 code.add(tmpstr);
+		    	 atrr52.setName("t"+tmp_count);
 		    	 tmp.setAttr(atrr52);
+		    	 tmp_count++;
 			  break;
 		     case 53:		/* relational_expression -> relational_expression LE_OP additive_expression */
 			  break;
