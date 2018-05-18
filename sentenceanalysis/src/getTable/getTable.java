@@ -34,6 +34,7 @@ public class getTable {
 	 int offset=0;
 	 int flag=0;
 	 String typestore=null;
+	 int jmpL=0;
 	 HashMap<String ,attribute> symbol=new HashMap<String ,attribute>();
 	 Vector<String> existV=new Vector<String>();//非终结符集合
 	 Vector<String>  existT=new Vector<String>();//终结符集合
@@ -649,6 +650,13 @@ public class getTable {
 	
 		
 	}
+	public int findtruelist(String str) {
+		int i=0;
+		for( i=0;i<code.size();i++)
+			if(code.get(i).startsWith(str))
+				return i;
+		return -1;
+	}
 	public stack_node semantic_subpro(int projectnumber,Stack<stack_node> stk,stack_node tmp) {
 		String tmpstr=new String();
 		wordAnalyse tmpwordana=new wordAnalyse();
@@ -769,6 +777,7 @@ public class getTable {
 		    	 tmp.setAttr(stk.get(0).getAttr());
 			  break;
 		     case 21:		/* statement -> selection_statement */
+		    	 tmp.setAttr(stk.get(0).getAttr());
 			  break;
 		     case 22:		/* statement -> iteration_statement */
 			  break;
@@ -779,12 +788,39 @@ public class getTable {
 			  break;
 		     case 25:		/* selection_statement -> IF ( expression ) statement */
 		    	 newtemp temp35=(newtemp)stk.get(2).getAttr();
-		    	tmpstr="if "+temp35.getName()+"  goto:--";
-		    	code.add(tmpstr);
+		    	 newtemp temp38=(newtemp) stk.get(0).getAttr();
+		    	 int truelist=findtruelist(temp38.getName());
+		    	 tmpstr="L"+jmpL+"true:"+code.get(truelist);
+		    	 code.set(truelist,tmpstr);
+		    	 tmpstr="L"+jmpL+" :if "+temp35.getName()+"  goto:L"+jmpL+"true";
+		    	 code.add(truelist, tmpstr);
+		    	 tmpstr="L"+jmpL+"end";
+		    	 code.add(tmpstr);
+		    	 tmpstr="goto:L"+jmpL+"end";
+		    	 code.add(truelist+1,tmpstr);
+		    	 jmpL++;
+		    	
 			  break;
 		     case 26:		/* selection_statement -> IF ( expression ) statement ELSE statement */
-		    	 int a1=1;
-		    	 int c1=3+2;
+		    	 newtemp temp39=(newtemp)stk.get(0).getAttr();
+		    	 newtemp temp40=(newtemp)stk.get(2).getAttr();
+		    	 newtemp temp41=(newtemp)stk.get(4).getAttr();
+		    	 int turelist26=findtruelist(temp40.getName());
+		    	 tmpstr="L"+jmpL+"true:"+code.get(turelist26);
+		    	 code.set(turelist26,tmpstr);
+		    	 tmpstr="L"+jmpL+" :if "+temp41.getName()+"  goto:L"+jmpL+"true";
+		    	 code.add(turelist26, tmpstr);
+		    	 tmpstr="goto :L"+jmpL+"false";
+		    	 code.add(turelist26+1, tmpstr);
+		    	 int falselist26=findtruelist(temp39.getName());
+		    	 tmpstr="L"+jmpL+"false: "+code.get(falselist26);
+		    	 code.set(falselist26,tmpstr);
+		    	 code.add("goto : L"+jmpL+"end");
+		    	 tmpstr="L"+jmpL+"end";
+		    	 code.add(tmpstr);
+		    	 turelist26=findtruelist("L"+jmpL+"false:");
+		    	 code.add(turelist26, "goto : L"+jmpL+"end");
+		    	 jmpL++;
 			  break;
 		     case 27:		/* iteration_statement -> WHILE ( expression ) statement */
 			  break;
@@ -953,6 +989,11 @@ public class getTable {
 		    	 tmp.setAttr(atrr51);
 			  break;
 		     case 52:		/* relational_expression -> relational_expression > additive_expression */
+		    	 newtemp atrr52=new newtemp();
+		    	 newtemp tmp36=(newtemp) stk.get(2).getAttr();
+		    	 newtemp tmp37=(newtemp) stk.get(0).getAttr();
+		    	 atrr52.setName(tmp36.getName()+stk.get(1).getToken().getName()+tmp37.getName());
+		    	 tmp.setAttr(atrr52);
 			  break;
 		     case 53:		/* relational_expression -> relational_expression LE_OP additive_expression */
 			  break;
